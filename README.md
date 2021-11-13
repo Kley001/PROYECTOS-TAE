@@ -7,4 +7,4 @@
 **Cada uno copia su nombre**
 - Daniel Andrés Toro Aguirre
 - Jelssin Donnovan Robledo Mena
-- 
+- Juan Esteban Carvajal Molina
