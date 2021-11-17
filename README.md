@@ -7,4 +7,5 @@
 **Cada uno copia su nombre**
 - Daniel Andrés Toro Aguirre
 - Jelssin Donnovan Robledo Mena
+- Kleider Stiven Vásquez Gómez
 - 
