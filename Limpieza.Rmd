@@ -21,26 +21,26 @@ Primero se carga la base de datos.
 
 
 ```{r}
+#Librerias
+#install.packages("sp") #para rgdal
 library(stringr)
 library(dplyr)
+library(rgdal)
+library(plyr)
+library(tidyverse)
+
+
 
 
 base <- read.csv("incidentes_viales.csv", dec=",", header=T,sep=";", encoding = "UTF-8")
 #270765 datos y 18 variables, porque se crea la variable hora y día dentro de la base
 
 
-#base <- mutate(base, X=str_split(LOCATION, ","))
-
+#coercionando fecha accidente a tipo date
 base$FECHA_ACCIDENTE <- as.Date(base$FECHA_ACCIDENTE, format="%d/%m/%Y") 
 summary(base$FECHA_ACCIDENTE)
 
-class(base$FECHA_ACCIDENTE)
-
-
-class(base$HORA)
-
-
-
+#class(base$FECHA_ACCIDENTE)
 
 
 colSums(is.na(base)|base=="") #cuenta los vacios
@@ -61,8 +61,6 @@ str(base)
 Los 6 datos vacíos de la variable `CLASE_ACCIDENTE` se cambiarán por "otro", pues no fueron reportados o se perdieron al momento de tomar la medición.
 
 ```{r}
-
-
 
 # reemplazar datos vacios de la variable CLASE_ACCIDENTE
 
@@ -162,17 +160,7 @@ Con CBML y extrayendo los 4 primeros dígitos obtenemos la comuna y el barrio. P
 ```{r}
 
 
-#install.packages("sf")
-
-library(rgdal)
-library(dplyr)
-library(stringr)
-
-
 catastro <- readOGR(dsn = "D:/Users/Usuario/Desktop/UN/11. SEMESTRE XI/TAE/Limite_Barrio_Vereda_Catastral.shp", layer = "Limite_Barrio_Vereda_Catastral")
-
-
-
 
 
 #quitamos los 962 datos de CBML que están errados ---> quedan 269803
@@ -183,18 +171,17 @@ base <- base[-which(base$CBML %in% c("AUC1","AUC2","Inst_14","Inst_16","Inst_18"
 base <- mutate(base, CB = str_sub(CBML,1,4))
 
 #agregando un cero adelante a los CB y creando una nueva columna --> JCB
-base <- mutate(base, ifelse(nchar(CB)==3,paste0("0", CB),CB),CB)
+base <- mutate(base, JCB=ifelse(nchar(CB)==3,paste0("0", CB),CB),CB)
 
-colnames(base)[21] <- "JCB" #renombrando col 21
-colnames(base)
+colnames(base)#nombres de columnas
 
-#contar los que tengan 3 digitos y agregarles un cero adelante
+
 
 
 #base unificada, se eliminan en total =  15794+962=16756 observaciones
 
 base <- inner_join(base, select(catastro@data,CODIGO,NOMBRE_COM,NOMBRE_BAR),
-                  by = c("JCB" = "CODIGO"))
+                  by = c("JCB" = "CODIGO")) #quedan 254009 datos
 
 
 #Quitar repetidos por el inner_join
@@ -246,12 +233,26 @@ base2$NOMBRE_BAR <- iconv(base2$NOMBRE_BAR, from = "UTF-8", to = "ASCII//TRANSLI
 ```
 
 
+Separar la variable LOCATION
+
+
+```{r}
+base2 <- separate(base2,LOCATION,c("LONGITUD","LATITUD"),sep=",",convert=TRUE) #SEPARA LONGITUD Y LATITUD DE LOCATION
+base2$LONGITUD <- substring(base2$LONGITUD, first = 2) #QUITAR EL ELEMTO "["
+base2$LATITUD <- gsub(" ","", base2$LATITUD) #QUITAR EL ESPACIO ANTES DEL NUMERO
+base2$LATITUD <- gsub("]","", base2$LATITUD) #QUITAR "]"
+
+
+
+```
+
+
+
+
+
 Renombrar columnas
 
 ```{r}
-
-library(plyr)
-
 
 
 #renombremos las columnas
@@ -312,16 +313,6 @@ summary(base2$FESTIVIDAD)
 
 
 
-Ahora se indican las horas pico
-
-
-
-
-
-
-coercionando los tipos de variables
-
-
 
 Archivo final
 
@@ -329,24 +320,4 @@ Archivo final
  
 write.csv(base2,"D:/Users/Usuario/Desktop/UN/11. SEMESTRE XI/TAE/base_final.csv",fileEncoding = "UTF-8")
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
