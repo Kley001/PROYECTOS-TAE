@@ -1,0 +1,511 @@
+---
+title: "Modelos Predictivos"
+author: "Kleider Stiven Vásquez Gómez y Jelssin Donnovan Robledo Mena"
+date: "23/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos Predictivos sobre Base Final 
+
+```{r }
+library(dummies)
+library(stringr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(GGally)
+library(car)
+library(MLmetrics)
+library(wordcloud)
+library(gplots)
+library(R.utils)
+library(tm)
+library(DescTools)
+library(raster)
+library(mclust)
+library(rgdal)
+library(raster)
+library(geosphere)
+library(NbClust)
+library(factoextra)
+library(vegan)
+library(qpcR)
+library(leaflet)
+```
+
+```{r}
+base_final <- read.csv("C:/Users/Usuario/Downloads/base_final.csv", encoding="UTF-8")
+```
+
+
+```{r }
+library(dplyr)
+
+base_final$CLASE <- as.factor(as.character(base_final$CLASE))
+datos_vl <- subset(base_final, (AÑO == '2018'))
+base_final <- subset(base_final, (AÑO != '2018'))
+base_final <- subset(base_final, (AÑO != '2019'))
+base_final <- subset(base_final, (AÑO != '2020'))
+
+datos_lm1 <- base_final %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                   DISENO) %>% count(name = "NRO_ACCID") 
+lm1 <- lm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+DISENO, data = datos_lm1) # Modelo lineal
+promedio <- mean(datos_lm1$NRO_ACCID)
+TSS <- sum((datos_lm1$NRO_ACCID - promedio)^2)
+
+sprintf("TSS: %f", TSS)
+
+RSS <- RSS(lm1)
+r2 <- 1-RSS/TSS
+
+sprintf("RSS: %f", RSS)
+
+RSS2 <- anova(lm1)[4, 2]
+
+sprintf("RSS: %f", RSS)
+
+r2 <- 1-RSS/TSS
+r2
+
+# install.packages("dummies", "stringr", "dplyr", "lubridate", "ggplot2", "GGally", "car", "MLmetrics", "wordcloud", "gplots", "R.utils", "tm", "DescTools", "raster", "mclust", "rgdal", "raster", "geosphere", "NbClust", "factoextra", "vegan", "qpcR")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r }
+library(qpcR)
+library(MLmetrics)
+
+lm1_data <- base_final %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                   DISENO) %>% count(name = "NRO_ACCID") 
+lm1_tr <- lm1_data[,-c(5)]
+
+predicted <- round(predict(lm1, newdata=lm1_tr))
+actual <- lm1_data$NRO_ACCID
+
+lm1_mse <- MSE(predicted, actual) # MSE
+lm1_mae <- MAE(predicted, actual) # MAE
+lm1_r2 <- R2_Score(predicted, actual) # R2
+
+sprintf("MSE: %f, MAE: %f, R2: %f", lm1_mse, lm1_mae, lm1_r2)
+
+```
+
+```{r }
+
+lm1_2018 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                  DISENO) %>% count(name = "NRO_ACCID")
+
+predicted <- round(predict(lm1, newdata=lm1_2018))
+actual <- lm1_2018$NRO_ACCID
+
+lm1_mse <- MSE(predicted, actual) # MSE
+lm1_mae <- MAE(predicted, actual) # MAE
+lm1_r2 <- R2_Score(predicted, actual) # R2
+
+sprintf("MSE: %f, MAE: %f, R2: %f", lm1_mse, lm1_mae, lm1_r2)
+
+```
+La diferencia del MSE entre los datos de entrenamiento y validación es del 65.96%, que al ser mayor que el 15% nos indica un posible sobreajuste.
+
+## Nuevo modelo con cambio de variables
+
+```{r}
+
+datos_lm2 <- base_final %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+lm2 <- lm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA, data = datos_lm2)
+
+```
+
+```{r}
+lm2_tr <- base_final %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+predicted <- round(predict(lm2, newdata=lm2_tr))
+actual <- lm2_tr$NRO_ACCID
+
+lm2_mse <- MSE(predicted, actual) # MSE
+lm2_mae <- MAE(predicted, actual) # MAE
+lm2_r2 <- R2_Score(predicted, actual) # R2
+
+sprintf("MSE: %f, MAE: %f, R2: %f", lm2_mse, lm2_mae, lm2_r2)
+```
+Se aprecia un R2 de 0.069087, por esta razón lo descartaríamos, sin embargo vamos a ver qué sucede con la validación del modelo.
+
+```{r}
+lm2_2018 <- datos_vl %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+predicted <- round(predict(lm2, newdata=lm2_2018))
+actual <- lm2_2018$NRO_ACCID
+
+lm2_mse <- MSE(predicted, actual) # MSE
+lm2_mae <- MAE(predicted, actual) # MAE
+lm2_r2 <- R2_Score(predicted, actual) # R2
+
+
+sprintf("MSE: %f, MAE: %f, R2: %f", lm2_mse, lm2_mae, lm2_r2)
+```
+Para la realización de este segundo modelo, se quito la variable diseño y se cambio la variable dia_especial por dia_festivo, sin embargo, no se obtuvieron resultados positivos, ya que el R2 disminuyó notablemente y el MSE aumentó, indicandonos una alta variabilidad en las predicciones y una baja variabilidad explicada por el modelo. ##Luego colocarlo con nuestros términos según el modelo dos.
+
+
+## Modelo Generalizado
+
+```{r}
+datos_lm4 <- base_final %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+lm4 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA, family = "poisson", data = datos_lm4) # Modelo lineal generalizado, con familia poisson
+
+```
+
+```{r}
+lm4_tr <- base_final %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+lm4_tr_1 <- lm4_tr[,-4]
+
+predicted <- round(predict(lm4, newdata=lm4_tr_1, type="response"))
+actual <- lm4_tr$NRO_ACCID
+
+lm4_mse <- MSE(predicted, actual) # MSE
+lm4_mae <- MAE(predicted, actual) # MAE
+lm4_r2pseudo <- PseudoR2(lm4)
+
+sprintf("MSE: %f, MAE: %f, Pseudo R2: %f", lm4_mse, lm4_mae, lm4_r2pseudo)
+```
+
+```{r}
+lm4_2018 <- datos_vl %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
+  count(name = "NRO_ACCID")
+
+predicted <- round(predict(lm4, newdata=lm4_2018, type="response")) 
+actual <- lm4_2018$NRO_ACCID
+
+lm4_mse <- MSE(predicted, actual) # MSE
+lm4_mae <- MAE(predicted, actual) # MAE
+
+sprintf("MSE: %f, MAE: %f", lm4_mse, lm4_mae)
+```
+
+## Modelo lineal generalizado | Adición de la variable Clase
+
+```{r}
+datos_lm5 <- base_final %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                   CLASE) %>% count(name = "NRO_ACCID")
+
+lm5 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE, family = "poisson", 
+           data = datos_lm5)
+```
+
+```{r}
+datos_lm5_p <- datos_lm5[,-5]
+y_train <- round(predict(lm5, newdata= datos_lm5_p, type="response"))
+y_actual <- datos_lm5$NRO_ACCID
+lm5_tmse <- MSE(y_train, y_actual)
+lm5_tmae <-  MAE(y_train, y_actual)
+lm5_tr2 <- PseudoR2(lm5)
+lm5_r2 <- R2_Score(y_train, y_actual)
+lm5_rel <- lm5$deviance/lm5$df.residual # Se obtiene la sobredispersión
+sprintf("MSE: %f, MAE: %f, R2 Entrenamiento: %f, R2 Score: %f, Sobredispersión: %f", 
+        lm5_tmse, lm5_tmae, lm5_tr2, lm5_r2, lm5_rel)
+```
+
+```{r}
+datos_lm5_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                      CLASE) %>% count(name = "NRO_ACCID")
+datos_lm5_v2 <- datos_lm5_v1[,-5]
+
+y_train <- round(predict(lm5, newdata= datos_lm5_v2, type="response"))
+y_actual <- datos_lm5_v1$NRO_ACCID
+lm5_tmse <- MSE(y_train, y_actual)
+lm5_tmae <-  MAE(y_train, y_actual)
+lm5_tr2 <- PseudoR2(lm5)
+lm5_r2 <- R2_Score(y_train, y_actual)
+lm5_rel <- lm5$deviance/lm5$df.residual # Se obtiene la sobredispersion
+sprintf("MSE: %f, MAE: %f, R2 Validación: %f, R2 Score: %f, Sobredispersión: %f", lm5_tmse, lm5_tmae, lm5_tr2, lm5_r2, lm5_rel)
+
+```
+## 10.02784 del MSE que indica que no hay sobreentrenamiento y explica un 89.5% de predicción.
+
+
+## Modelo lineal generalizado | Adición de la variable Año
+
+```{r}
+
+datos_lm6 <- base_final %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                   CLASE, DISENO) %>% count(name = "NRO_ACCID")
+
+lm6 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE+DISENO, family = "poisson", 
+           data = datos_lm6)
+```
+
+```{r}
+datos_lm6_p <- datos_lm6[,-6]
+y_train <- round(predict(lm6, newdata= datos_lm6_p, type="response"))
+y_actual <- datos_lm6$NRO_ACCID
+lm6_tmse01 <- MSE(y_train, y_actual)
+lm6_tmae <-  MAE(y_train, y_actual)
+lm6_tr2 <- PseudoR2(lm6)
+lm6_r2 <- R2_Score(y_train, y_actual)
+lm6_rel <- lm6$deviance/lm6$df.residual # Se obtiene la sobredispersión
+sprintf("MSE: %f, MAE: %f, R2 Entrenamiento: %f, R2 Score: %f, Sobredispersión: %f", 
+        lm6_tmse01, lm6_tmae, lm6_tr2, lm6_r2, lm6_rel)
+```
+
+```{r}
+datos_lm6_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                      CLASE, DISENO) %>% count(name = "NRO_ACCID")
+datos_lm6_v2 <- datos_lm6_v1[,-6]
+
+y_train <- round(predict(lm6, newdata= datos_lm6_v2, type="response"))
+y_actual <- datos_lm6_v1$NRO_ACCID
+lm6_tmse02 <- MSE(y_train, y_actual)
+lm6_tmae <-  MAE(y_train, y_actual)
+lm6_tr2 <- PseudoR2(lm6)
+lm6_r2 <- R2_Score(y_train, y_actual)
+lm6_rel <- lm6$deviance/lm6$df.residual # Se obtiene la sobredispersión
+sprintf("MSE: %f, MAE: %f, R2 Entrenamiento: %f, R2 Score: %f, Sobredispersión: %f", 
+        lm6_tmse02, lm6_tmae, lm6_tr2, lm6_r2, lm6_rel)
+```
+
+```{r}
+Variacion <- ((lm6_tmse02 - lm6_tmse01)/(lm6_tmse01))*100
+print(c("Variacion porcentual" = Variacion))
+```
+## Agrupamiento
+
+```{r echo=FALSE, fig.align='center'}
+knitr::include_graphics("Clusters.svg")
+```
+
+```{r}
+### Función | Cálculo de distancias para datos geoespaciales, haciendo uso de la librería geosphere
+geo.dist = function(df) {
+  require(geosphere)
+  d <- function(i,z){         # z[1:2] contain long, lat
+    dist <- rep(0,nrow(z))
+    dist[i:nrow(z)] <- distHaversine(z[i:nrow(z),1:2],z[i,1:2])
+    return(dist)
+  }
+  dm <- do.call(cbind,lapply(1:nrow(df),d,df))
+  return(as.dist(dm))
+}
+```
+
+```{r echo=FALSE}
+#Conversión a númerico de la latitud y longitud.
+base_final$LATITUD <- as.numeric(as.character(base_final$LATITUD))
+base_final$LONGITUD<- as.numeric(as.character(base_final$LONGITUD))
+```
+
+```{r echo=FALSE}
+## Creación nuevo set de datos para el agrupamiento, según longitud, latitud y barrio.
+df <- data.frame(long = base_final$LONGITUD, lat = base_final$LATITUD, barrios = base_final$BARRIO)
+```
+
+```{r}
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Creación matriz de distancias con la función geo.dist.
+df1 <- df[1:1000, ]
+d <- geo.dist(df1)
+hc <- hclust(d)
+plot(hc)
+df1$clust <- cutree(hc, k = 7)
+head(df1,10)
+```
+
+## Mapa
+
+```{r}
+s <- shapefile("C:/Users/Usuario/Downloads/Limite_Catastral_de__Comunas_y_Corregimientos.shp")
+map.df1 <- (s)
+ggplot(map.df1)+
+  geom_path(aes(x=long, y=lat, group=group))+
+  geom_point(data=df1, aes(x=long, y=lat, color=factor(clust)), size=4)+
+  scale_color_discrete("Cluster")+
+  coord_fixed()
+```
+
+Según las medidas geoespaciales de latitud y longitud de los accidentes es posible obtener la agrupación mostrada anteriormente. Sin embargo, se acalara que este agrupamiento tiene un uso neto como base de referenciación, ya que no se hizo uso de ningún método para la elección del $K$ óptimo. ##Luego parafrasearlo según nuestros datos.
+
+
+### Clusterización | Número de accidentes por Gravedad y Barrio.
+
+```{r}
+datos_cluster <- base_final %>% group_by(BARRIO) %>% count(name = "TOTAL_ACCIDENTES") ## Numero de accidentes por barrio
+```
+
+```{r echo=FALSE}
+df <- as.matrix(table(base_final$BARRIO, base_final$GRAVEDAD))  #Número de accidentes por barrio segun gravedad. 
+df <- data.frame(Con_heridos = df[,1], Con_muertos = df[,2], Solo_danos = df[,3])
+```
+
+#### Clustering haciendo uso del algoritmo - k means - búsqueda del número óptimo de clusters.
+
+```{r}
+
+scaled_data = as.matrix(scale(df))
+head(scaled_data, 10)
+
+
+## En un principio se seleccionó un número aleatorio de clusters con el fin de realizar una observación previa ### del 
+## agrupamiento, seleccionando un $k = 3$.
+
+kmm = kmeans(scaled_data, 3, nstart = 50, iter.max = 15 )
+
+```
+
+### Método del codo (Elbow Method)
+
+```{r}
+km <- kmeans(datos, 5)
+km
+```
+
+```{r}
+set.seed(2021022)
+#cálculo y graficación de WSS(total within - cluster sum of square) para k = 2 hasta k = 10
+k.max <- 10
+datos <- scaled_data
+wss <- sapply(2:k.max, 
+              function(k){kmeans(datos, k, nstart = 50, iter.max = 15 )$tot.withinss})
+plot(2:k.max, wss, 
+     type = "b", pch = 19, frame = FALSE,
+     xlab = "Numero de clusters (k)",
+     ylab = "Total WSS", 
+     main = "Método del codo",
+     sub = "Elbow method")
+```
+
+Según la gráfica del Método del Codo posiblemente el k=5 o k=6 serían buenos candidatos para el k óptimo, ya que presentan un cambio más suave en las pendientes en comparación con k=2 o k=3. Igualmente al observar el between_SS / total_SS para k=5 se evidencia un 85.1 %, lo cual indica un buen ajuste. Además como se graficó el WSS contra el número de clústeres, se refleja que es un buen candidato.
+
+
+```{r }
+nb <- NbClust(scaled_data, diss=NULL, distance = "euclidean", 
+              min.nc=4, max.nc=8, method = "kmeans", 
+              index = "all", alphaBeale = 0.1)
+```
+
+```{r }
+hist(nb$Best.nc[1,], breaks = max(na.omit(nb$Best.nc[1,])), main = "Histograma - k", xlab = "k", ylab = "Frecuencia")
+#Según este método el mejor sería 5, podrían usarse 4.
+```
+
+### Resumen de métodos.
+
+#### Método de la silueta.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_nbclust(scaled_data, kmeans, method = c("silhouette"))
+```
+
+#### Método del codo.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_nbclust(scaled_data, kmeans, method = "wss") +
+    geom_vline(xintercept = 6, linetype = 2)+
+  labs(subtitle = "Elbow method")
+```
+
+#### Gap statistic.
+
+```{r }
+set.seed(123)
+fviz_nbclust(scaled_data, kmeans, nstart = 25,  method = "gap_stat", nboot = 50)+
+  labs(subtitle = "Gap statistic method")
+```
+
+
+### Generación de clusterización según el k óptimo seleccionado
+
+Según los diferentes métodos $k = 4$, parecía ser muy óptimo para la generación de la clusterización.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kmm = kmeans(scaled_data, 4, nstart = 50, iter.max = 15 )
+
+df_clust <- data.frame(Con_heridos = df[,1], Con_muertos = df[,2], Solo_danos = df[,3], kmm$cluster)
+head(df_clust, 10)
+
+```
+
+```{r}
+df_clust$Solo_danos_por_agrup <- df_clust$Solo_danos / nrow(df_clust)
+df_clust$Con_heridos_por_agrup <- df_clust$Con_heridos / nrow(df_clust)
+df_clust$Con_muertos_por_agrup <- df_clust$Con_muertos / nrow(df_clust)
+
+ggplot(df_clust, aes(x= factor(kmm.cluster), 
+                     y = Solo_danos_por_agrup, fill=factor(kmm.cluster))) + 
+  geom_boxplot(show.legend = F) + 
+  labs(x = "Cluster", y="Porcentaje de accidentalidad", col="Cluster",
+       title = "Porcentaje de accidentes de la gravedad Solo Daños")
+ggplot(df_clust, aes(x= factor(kmm.cluster), 
+                     y = Con_heridos_por_agrup, fill=factor(kmm.cluster))) +
+   geom_boxplot(show.legend = F) + 
+  labs(x = "Cluster", y="Porcentaje de accidentalidad", col="Cluster",
+       title = "Pocentaje de accidentes de la gravedad Herido")
+ggplot(df_clust, aes(x= factor(kmm.cluster), 
+                     y = Con_muertos_por_agrup, fill=factor(kmm.cluster))) +
+  geom_boxplot(show.legend = F) + 
+  labs(x = "Cluster", y="Porcentaje de accidentalidad", col="Cluster",
+       title = "Porcentaje de accidentes de la gravedad Muerte")
+```
+
+```{r}
+### Accidentalidad baja.
+
+dfclust_clust2 <- df_clust[df_clust$kmm.cluster == 2, ]
+dfclust_clust2$total <- rowSums(dfclust_clust2[,1:3])
+sum(dfclust_clust2$Con_heridos)
+sum(dfclust_clust2$Con_muertos)
+sum(dfclust_clust2$Solo_danos)
+sum(dfclust_clust2$total)
+```
+
+```{r}
+### Accidentalidad moderada.
+dfclust_clust1 <- df_clust[df_clust$kmm.cluster == 1, ]
+dfclust_clust1$total <- rowSums(dfclust_clust1[,1:3])
+sum(dfclust_clust1$Con_heridos)
+sum(dfclust_clust1$Con_muertos)
+sum(dfclust_clust1$Solo_danos)
+sum(dfclust_clust1$total)
+```
+
+```{r}
+### Accidentalidad media-alta
+dfclust_clust4 <- df_clust[df_clust$kmm.cluster == 4, ]
+dfclust_clust4$total <- rowSums(dfclust_clust4[,1:3])
+sum(dfclust_clust4$Con_heridos)
+sum(dfclust_clust4$Con_muertos)
+sum(dfclust_clust4$Solo_danos)
+sum(dfclust_clust4$total)
+```
+
+```{r}
+### Accidentalidad alta
+dfclust_clust3 <- df_clust[df_clust$kmm.cluster == 3, ]
+dfclust_clust3$total <- rowSums(dfclust_clust3[,1:3])
+sum(dfclust_clust3$Con_heridos)
+sum(dfclust_clust3$Con_muertos)
+sum(dfclust_clust3$Solo_danos)
+sum(dfclust_clust3$total)
+```
+
+```{r}
+
+df_clust$kmm.cluster <- str_replace_all(df_clust$kmm.cluster, "1", "Accidentalidad moderada")
+df_clust$kmm.cluster <- str_replace_all(df_clust$kmm.cluster, "2", "Accidentalidad baja")
+df_clust$kmm.cluster <- str_replace_all(df_clust$kmm.cluster, "3", "Accidentalidad alta")
+df_clust$kmm.cluster <- str_replace_all(df_clust$kmm.cluster, "4", "Accidentalidad media-alta")
+write.csv(df_clust, "Agrupamiento_final.csv", row.names = FALSE)
+```
+
