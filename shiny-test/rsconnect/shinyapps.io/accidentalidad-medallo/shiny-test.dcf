@@ -1,0 +1,11 @@
+name: shiny-test
+title:
+username:
+account: accidentalidad-medallo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5237918
+bundleId: 5312234
+url: https://accidentalidad-medallo.shinyapps.io/shiny-test/
+when: 1638325000.18754
+lastSyncTime: 1638325000.18754
