@@ -2,70 +2,37 @@ library(shiny)
 library(shinythemes)
 library(rsconnect)
 library(leaflet)
+library(sf)
 
 tipo_accidente <- c("Todos", "Atropello", "Caida de Ocupante", "Choque", "Incendio", 
                 "Volcamiento", "Otro")
 
 barrios <- read_sf("Limite_Barrio_Vereda_Catastral.shp")
-comunas <- c("Todas", levels(factor(barrios$NOMBRE_COM)))
-rm(barrios)
+grupos_de_barrios <- c("Todas", levels(factor(barrios$NOMBRE_COM)))
+
+ventanas_de_tiempo <- c("Diario", "Semanal", "Mensual")
 
 ui <- fluidPage(theme = shinytheme("yeti"),
-                tags$head(
-                # Note the wrapping of the string in HTML()
-                tags$style(HTML("<pre>
-                .video-responsive {
-                position: relative;
-                padding-bottom: 56.25%; /* 16/9 ratio */
-                padding-top: 30px; /* IE6 workaround*/
-                height: 0;
-                overflow: hidden;
-                }
-                
-                .video-responsive iframe,
-                .video-responsive object,
-                .video-responsive embed {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                }</pre>"))),
                 navbarPage(
                   "Accidentalidad-Medallo",
-                  
-                  tabPanel("Agrupamiento",
+                  tabPanel("Prediccion", 
                            fluidRow(
                              column(4,
-                                    h3("Seleccionar la comuna para ver caracteristicas"),
+                                    h3("Seleccione por tipo de accidente y ventana de tiempo para predecir"),
                                     #textInput("select_comuna", "Comuna:", value = c("Todas")),
-                                    selectInput(inputId = "select_comuna",
-                                                label = "Comuna:",
-                                                choices = comunas),
-                             ),
-                             column(8,
-                                    leafletOutput("Agrupamiento"),
-                             )
-                           ),
-                  ),
-                  tabPanel("Historico",
-                           fluidRow(
-                             column(4,
-                                    h3("Seleccione entre que años y de que tipo de accidente desea ver el historico"),
-                                    sliderInput("slider_año",
-                                                "Años:",
-                                                min = 2014,
-                                                max = 2019,
-                                                value = c(2014, 2019)),
-                                    selectInput("select_tipo_accidente",
+                                    selectInput("select_ventana_tiempo",
+                                                "Tipo Prediccion:",
+                                                choices = ventanas_de_tiempo),
+                                    selectInput("select2_tipo_accidente",
                                                 "Tipo de accidente:",
                                                 choices = tipo_accidente),
                              ),
                              column(8,
-                                    leafletOutput("Historico",width = "100%", height = 400)
+                                    
                              )
                            ),
-                  ),
+                           ),
+                  
                   tabPanel("Inicio",
                            fluidRow(
                              column(4,
@@ -83,6 +50,39 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                              )
                            ),
                   ),
+                  tabPanel("Historico",
+                           fluidRow(
+                             column(4,
+                                    h3("Seleccione entre que años y de que tipo de accidente desea ver el historico"),
+                                    sliderInput("slider_año",
+                                                "Años:",
+                                                min = 2014,
+                                                max = 2019,
+                                                value = c(2014, 2019)),
+                                    selectInput("select_tipo_accidente",
+                                                "Tipo de accidente:",
+                                                choices = tipo_accidente),
+                             ),
+                             column(8,
+                                    leafletOutput("Historico")
+                             )
+                           ),
+                  ),
+                  tabPanel("Agrupamiento",
+                           fluidRow(
+                             column(4,
+                                    h3("Seleccione la comuna para ver caracteristicas"),
+                                    #textInput("select_comuna", "Comuna:", value = c("Todas")),
+                                    selectInput("select_comuna",
+                                                "Comuna:",
+                                                choices = grupos_de_barrios),
+                             ),
+                             column(8,
+                                    leafletOutput("Agrupamiento"),
+                             )
+                           ),
+                  ),
+                  
                   tabPanel("Resumen",
                            sidebarPanel(
                              tags$h3("Input:"),
@@ -99,9 +99,5 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                            ) 
                            
                   ),
-                  
-                  tabPanel("Prediccion", "This panel is intentionally left blank"),
-                  tabPanel("dia a dia", "This panel is intentionally left blank"),
-                  
                 )
 ) 

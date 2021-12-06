@@ -1,6 +1,6 @@
 ---
 title: "Modelos Predictivos"
-author: "Kleider Stiven VÃ¡squez GÃ³mez y Jelssin Donnovan Robledo Mena"
+author: "Kleider Stiven Vásquez Gómez y Jelssin Donnovan Robledo Mena"
 date: "23/11/2021"
 output: html_document
 ---
@@ -9,14 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Primer Trabajo de TÃ©cnicas en Aprendizaje EstadÃ­stico
+## Primer Trabajo de Técnicas en Aprendizaje Estadístico
 
 ```{r }
-#InstalaciÃ³n y lectura de librerÃ­as
+#Instalación y lectura de librerías
 
 #install.packages("dummies", "stringr", "dplyr", "lubridate", "ggplot2", "GGally", "car", "MLmetrics", "wordcloud", "gplots", "R.utils", "tm", "DescTools", "raster", "mclust", "rgdal", "raster", "geosphere", "NbClust", "factoextra", "vegan", "qpcR")
 
-#Los siguientes paquetes son los que se necesitan para el trabajo NÃºmero 01 de TAE
+#Los siguientes paquetes son los que se necesitan para el trabajo Número 01 de TAE
 
 library(dummies)
 library(stringr)
@@ -47,24 +47,24 @@ library(leaflet)
 
 ```{r}
 #Lectura de la Base de datos con la cual se trabajarÃ¡ en este proyecto
-base_final <- read.csv("base_final.csv", encoding="UTF-8")
+base_final <- read.csv("C:/Users/Usuario/Downloads/base_final.csv", encoding="UTF-8")
 ```
 
 ### 1 - Entrenamiento de un Modelo Predictivo
 
-En la etapa de entrenamiento del modelo predictivo se utilizÃ³ el registro histÃ³rico de accidentes desde el aÃ±o 2014 hasta el aÃ±o 2017, y para la etapa de validaciÃ³n se hizo uso de los registros de los aÃ±os 2018 y 2019. Ã‰sto debido a las especificaciones del trabajo para predecir la accidentalidad en MedellÃ­n.
+En la etapa de entrenamiento del modelo predictivo se utilizó el registro histórico de accidentes desde el año 2014 hasta el año 2017, y para la etapa de validación se hizo uso de los registros de los años 2018 y 2019. Ésto debido a las especificaciones del trabajo para predecir la accidentalidad en Medellín.
 
 ### Modelo Lineal
 
-Inicialmente se utiliza un modelo lineal con las variables "Festividad", "DÃ­a Semana" y "DiseÃ±o".
+Inicialmente se utiliza un modelo lineal con las variables "Festividad", "Día Semana" y "Diseño".
 
 ```{r }
 #Modelo lineal
 base_final$CLASE <- as.factor(as.character(base_final$CLASE))
-datos_vl <- subset(base_final, (AÃ‘O == '2018'))
-base_final01 <- subset(base_final, (AÃ‘O != '2018'))
-base_final02 <- subset(base_final01, (AÃ‘O != '2019'))
-base_final03 <- subset(base_final02, (AÃ‘O != '2020'))
+datos_vl <- subset(base_final, (AÑO == '2018'))
+base_final01 <- subset(base_final, (AÑO != '2018'))
+base_final02 <- subset(base_final01, (AÑO != '2019'))
+base_final03 <- subset(base_final02, (AÑO != '2020'))
 
 datos_lm1 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
                                    DISENO) %>% count(name = "NRO_ACCID") 
@@ -77,9 +77,9 @@ RSS2 <- anova(lm1)[4, 2]
 r2 <- 1-RSS/TSS
 ```
 
-En este modelo se va a observar el **MSE** (Error CuadrÃ¡tico Medio) y el **$R^2$** (Coeficiente de DeterminaciÃ³n) para determinar la potencia del modelo para predecir.
+En este modelo se va a observar el **MSE** (Error Cuadrático Medio) y el **$R^2$** (Coeficiente de Determinación) para determinar la potencia del modelo para predecir.
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r }
 lm1_data <- base_final03 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -96,7 +96,7 @@ lm1_r2 <- R2_Score(predicted, actual) # R2
 sprintf("MSE: %f, MAE: %f, R2: %f", lm1_mse, lm1_mae, lm1_r2)
 
 ```
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r }
 
@@ -113,13 +113,13 @@ lm1_r2 <- R2_Score(predicted, actual) # R2
 sprintf("MSE: %f, MAE: %f, R2: %f", lm1_mse, lm1_mae, lm1_r2)
 
 ```
-La diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2018 es del 34.48%, que al ser mayor que el 15% indica un posible sobreajuste. AdemÃ¡s se puede apreciar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2018 predice un 72.86%, sin embargo disminuyÃ³ un 16.82% en cuanto al $R^2$ para los datos de entrenamiento. AsÃ­ que luego de Ã©sto se decide igualmente ver quÃ© sucede con el mismo modelo validando con el aÃ±o 2019.
+La diferencia del MSE entre los datos de entrenamiento y validación del 2018 es del 34.48%, que al ser mayor que el 15% indica un posible sobreajuste. Además se puede apreciar que el $R^2$ de los datos de validación para el año 2018 predice un 72.86%, sin embargo disminuyó un 16.82% en cuanto al $R^2$ para los datos de entrenamiento. Así que luego de ésto se decide igualmente ver qué sucede con el mismo modelo validando con el año 2019.
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r }
 
-datos_vl02 <- subset(base_final, (AÃ‘O == '2019'))
+datos_vl02 <- subset(base_final, (AÑO == '2019'))
 
 lm1_2019 <- datos_vl02 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
                                   DISENO) %>% count(name = "NRO_ACCID")
@@ -135,11 +135,11 @@ sprintf("MSE: %f, MAE: %f, R2: %f", lm1_mse, lm1_mae, lm1_r2)
 
 ```
 
-La diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del 41.29%, que al ser mayor que el 15% indica un posible sobreajuste. AdemÃ¡s se puede evidenciar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 76.53%, sin embargo aunque mejorÃ³ con respecto a la validaciÃ³n del aÃ±o 2018, disminuyÃ³ un 13.15% en cuanto al $R^2$ para los datos de entrenamiento. Por tanto, al obtener estos resultados validando con los aÃ±os 2018 y 2019 se decide buscar un nuevo modelo cambiando las variables.
+La diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del 41.29%, que al ser mayor que el 15% indica un posible sobreajuste. Además se puede evidenciar que el $R^2$ de los datos de validación para el año 2019 predice un 76.53%, sin embargo aunque mejoró con respecto a la validación del año 2018, disminuyó un 13.15% en cuanto al $R^2$ para los datos de entrenamiento. Por tanto, al obtener estos resultados validando con los años 2018 y 2019 se decide buscar un nuevo modelo cambiando las variables.
 
-## Modelo Lineal con disminuciÃ³n de Variables
+## Modelo Lineal con disminución de Variables
 
-Para este nuevo modelo se decide utilizar un modelo lineal Ãºnicamente con las variables "Festividad" y "DÃ­a Semana". Es decir, se omite en este caso "DiseÃ±o" para observar quÃ© cambios pueden ocurrir en el modelo.
+Para este nuevo modelo se decide utilizar un modelo lineal únicamente con las variables "Festividad" y "Día Semana". Es decir, se omite en este caso "Diseño" para observar qué cambios pueden ocurrir en el modelo.
 
 ```{r}
 datos_lm2 <- base_final03 %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -149,7 +149,7 @@ lm2 <- lm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA, data = datos_lm2)
 
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r}
 lm2_tr <- base_final03 %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -164,7 +164,7 @@ lm2_r2 <- R2_Score(predicted, actual) # R2
 
 sprintf("MSE: %f, MAE: %f, R2: %f", lm2_mse, lm2_mae, lm2_r2)
 ```
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 lm2_2018 <- datos_vl %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -180,9 +180,9 @@ lm2_r2 <- R2_Score(predicted, actual) # R2
 
 sprintf("MSE: %f, MAE: %f, R2: %f", lm2_mse, lm2_mae, lm2_r2)
 ```
-Con este nuevo modelo disminuyendo variables no se obtuvieron resultados positivos, ya que el R2 disminuyÃ³ notablemente tanto en el entrenamiento, como en la validaciÃ³n con el aÃ±o 2018 y la diferencia entre el MSE de datos de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 57.89%, lo cual indica que aumentÃ³, indicando asÃ­ una alta variabilidad en cuanto a las predicciones y de esa forma, una baja variabilidad explicada por este nuevo modelo.
+Con este nuevo modelo disminuyendo variables no se obtuvieron resultados positivos, ya que el R2 disminuyó notablemente tanto en el entrenamiento, como en la validación con el año 2018 y la diferencia entre el MSE de datos de entrenamiento y validación para el año 2018 fue de 57.89%, lo cual indica que aumentó, indicando así una alta variabilidad en cuanto a las predicciones y de esa forma, una baja variabilidad explicada por este nuevo modelo.
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r }
 
@@ -200,7 +200,7 @@ sprintf("MSE: %f, MAE: %f, R2: %f", lm2_mse, lm2_mae, lm2_r2)
 
 ```
 
-Para este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del 91.02%, que claramente indica un sobreajuste. Y se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 10.07%. AsÃ­ que se concluye que este modelo no sirve para predecir segÃºn los resultados obtenidos tanto en el entrenamiento, como para la validaciÃ³n en los aÃ±os de 2018 y 2019. AsÃ­ que se decide utilizar un modelo lineal generalizado.
+Para este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del 91.02%, que claramente indica un sobreajuste. Y se puede observar que el $R^2$ de los datos de validación para el año 2019 predice un 10.07%. Así que se concluye que este modelo no sirve para predecir según los resultados obtenidos tanto en el entrenamiento, como para la validación en los años de 2018 y 2019. Así que se decide utilizar un modelo lineal generalizado.
 
 ## Modelo Lineal Generalizado
 
@@ -212,7 +212,7 @@ lm3 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA, family = "poisson", data = datos_l
 
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r}
 lm3_tr <- base_final03 %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -230,7 +230,7 @@ lm3_r2 <- R2_Score(predicted, actual)
 sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm3_mse, lm3_mae, lm3_r2)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 lm3_2018 <- datos_vl %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -246,9 +246,9 @@ lm3_r2 <- R2_Score(predicted, actual)
 sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm3_mse, lm3_mae, lm3_r2)
 ```
 
-En este modelo lineal generalizado con la familia de distribuciÃ³n Poisson se obtuvo un $R^2$ en la etapa de entrenamiento de 7.21%, y para la etapa de validaciÃ³n para el aÃ±o 2018 el $R^2$ fue de 2.88%,lo cual indica que dicho modelo no sirve para predecir segÃºn los resultados obtenidos. AdemÃ¡s la diferencia entre el MSE de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 57.89%, que indica un sobreajuste. Sin embargo se procede a validar igualmente con el aÃ±o 2019.
+En este modelo lineal generalizado con la familia de distribución Poisson se obtuvo un $R^2$ en la etapa de entrenamiento de 7.21%, y para la etapa de validación para el año 2018 el $R^2$ fue de 2.88%,lo cual indica que dicho modelo no sirve para predecir según los resultados obtenidos. Además la diferencia entre el MSE de entrenamiento y validación para el año 2018 fue de 57.89%, que indica un sobreajuste. Sin embargo se procede a validar igualmente con el año 2019.
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r}
 lm3_2019 <- datos_vl02 %>% group_by(FECHA,FESTIVIDAD, DIA_SEMANA) %>% 
@@ -264,9 +264,9 @@ lm3_r2 <- R2_Score(predicted, actual)
 sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm3_mse, lm3_mae, lm3_r2)
 ```
 
-Para este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del 90.91%, que claramente indica un sobreajuste. Y se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 10.1%. AsÃ­ que se evidencia que este modelo no sirve para predecir segÃºn los resultados obtenidos tanto en el entrenamiento, como para la validaciÃ³n en los aÃ±os de 2018 y 2019. AsÃ­ que se decide utilizar el modelo lineal generalizado adicinando otra variable.
+Para este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del 90.91%, que claramente indica un sobreajuste. Y se puede observar que el $R^2$ de los datos de validación para el año 2019 predice un 10.1%. Así que se evidencia que este modelo no sirve para predecir según los resultados obtenidos tanto en el entrenamiento, como para la validación en los años de 2018 y 2019. Así que se decide utilizar el modelo lineal generalizado adicionando otra variable.
 
-## Modelo lineal generalizado con AdiciÃ³n de la variable Clase
+## Modelo lineal generalizado con Adición de la variable Clase
 
 ```{r}
 datos_lm4 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -276,7 +276,7 @@ lm4 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE, family = "poisson",
            data = datos_lm4)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r}
 datos_lm4_p <- datos_lm4[,-5]
@@ -289,7 +289,7 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f",
         lm4_tmse, lm4_tmae, lm4_r2)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 datos_lm4_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -305,9 +305,9 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm4_tmse, lm4_tmae, lm4_r2)
 
 ```
 
-En este modelo lineal generalizado con la familia de distribuciÃ³n Poisson con adiciÃ³n de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 88.6%,y para la etapa de validaciÃ³n para el aÃ±o 2018 el $R^2$ fue de 89.51%,lo cual indica que dicho modelo sirve para predecir segÃºn los resultados obtenidos. AdemÃ¡s la diferencia entre el MSE de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 10.03%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el aÃ±o 2019. 
+En este modelo lineal generalizado con la familia de distribución Poisson con adición de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 88.6%,y para la etapa de validación para el año 2018 el $R^2$ fue de 89.51%,lo cual indica que dicho modelo sirve para predecir según los resultados obtenidos. Además la diferencia entre el MSE de entrenamiento y validación para el año 2018 fue de 10.03%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el año 2019. 
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r}
 datos_lm4_v1 <- datos_vl02 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -323,9 +323,9 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm4_tmse, lm4_tmae, lm4_r2)
 
 ```
 
-En este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del 0.94%, que fue menor al valor obtenido con la validaciÃ³n del 2018 (10.03%), que indica claramente que no hay problemas de sobreentrenamiento. AdemÃ¡s se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 88.63%, evidenciando asÃ­ que este modelo lineal generalizado con la adiciÃ³n de la variable Clase es un buen candidato para predecir la accidentalidad en MedellÃ­n. Sin embargo, se adicionarÃ¡ otra variable para ver si se obtiene un mejor modelo.
+En este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del 0.94%, que fue menor al valor obtenido con la validación del 2018 (10.03%), que indica claramente que no hay problemas de sobreentrenamiento. Además se puede observar que el $R^2$ de los datos de validación para el aÃ±o 2019 predice un 88.63%, evidenciando así que este modelo lineal generalizado con la adición de la variable Clase es un buen candidato para predecir la accidentalidad en Medellín. Sin embargo, se adicionará otra variable para ver si se obtiene un mejor modelo.
 
-## Modelo lineal generalizado con AdiciÃ³n de la variable DiseÃ±o
+## Modelo lineal generalizado con Adición de la variable Diseño
 
 ```{r}
 
@@ -336,7 +336,7 @@ lm5 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE+DISENO, family = "poisson",
            data = datos_lm5)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r}
 datos_lm5_p <- datos_lm5[,-6]
@@ -348,7 +348,7 @@ lm5_r2 <- R2_Score(y_train, y_actual)
 sprintf("MSE: %f, MAE: %f, R2 Score: %f", 
         lm5_tmse01, lm5_tmae, lm5_r2)
 ```
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 datos_lm5_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -363,9 +363,9 @@ lm5_r2 <- R2_Score(y_train, y_actual)
 sprintf("MSE: %f, MAE: %f, R2 Score: %f", 
         lm5_tmse02, lm5_tmae, lm5_r2)
 ```
-En este modelo lineal generalizado con la familia de distribuciÃ³n Poisson con adiciÃ³n de la variable DiseÃ±o se obtuvo un $R^2$ en la etapa de entrenamiento de 86.56%, y para la etapa de validaciÃ³n para el aÃ±o 2018 el $R^2$ fue de 81.93%,lo cual indica que dicho modelo sirve para predecir segÃºn los resultados obtenidos. La diferencia entre el MSE de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 4.92%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. AsÃ­, se procede a validar con el aÃ±o 2019. 
+En este modelo lineal generalizado con la familia de distribución Poisson con adición de la variable Diseño se obtuvo un $R^2$ en la etapa de entrenamiento de 86.56%, y para la etapa de validación para el año 2018 el $R^2$ fue de 81.93%,lo cual indica que dicho modelo sirve para predecir según los resultados obtenidos. La diferencia entre el MSE de entrenamiento y validación para el año 2018 fue de 4.92%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Así, se procede a validar con el año 2019. 
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r}
 datos_lm5_v1 <- datos_vl02 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
@@ -381,17 +381,17 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f",
         lm5_tmse02, lm5_tmae, lm5_r2)
 ```
 
-En este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del 3.4%, que indica que no hay problemas de sobreentrenamiento. TambiÃ©n se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 82.91%, que evidencia que este modelo lineal generalizado con la adiciÃ³n de la variable DiseÃ±o es buen candidato para predecir la accidentalidad en MedellÃ­n.
+En este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del 3.4%, que indica que no hay problemas de sobreentrenamiento. También se puede observar que el $R^2$ de los datos de validación para el aÃ±o 2019 predice un 82.91%, que evidencia que este modelo lineal generalizado con la adición de la variable Diseño es buen candidato para predecir la accidentalidad en Medellín.
 
 Este modelo presenta el mejor MSE, pero no es un modelo viable ya que no es posible obtener la variable DISENO para realizar predicciones, segÃºn las pautas dadas.
 
-Finalmente, se decide trabajar con el modelo lineal generalizado que posee la variable CLASE, ya que como se analizÃ³ anteriormente, se observa que tanto para los datos de entrenamiento, como para los de validaciÃ³n (2018, 2019) se pueden obtener buenas predicciones.
+Finalmente, se decide trabajar con el modelo lineal generalizado que posee la variable CLASE, ya que como se analizó anteriormente, se observa que tanto para los datos de entrenamiento, como para los de validación (2018, 2019) se pueden obtener buenas predicciones.
 
-Luego, con el modelo elegido se procediÃ³ a realizar la etapa de entrenamiento y validaciÃ³n de forma semanal y mensual ya que dicho modelo para la predicciÃ³n diaria tuvo buenos resultados, tanto para el MSE, como para el $R^2$, para asÃ­ observar si tambiÃ©n con dicho modelo se pueden obtener buenas predicciones no solamente de manera diaria.
+Luego, con el modelo elegido se procedió a realizar la etapa de entrenamiento y validación de forma semanal y mensual ya que dicho modelo para la predicción diaria tuvo buenos resultados, tanto para el MSE, como para el $R^2$, para así observar si también con dicho modelo se pueden obtener buenas predicciones no solamente de manera diaria.
 
 ## Semanal
 
-## Modelo lineal generalizado con AdiciÃ³n de la variable Clase
+## Modelo lineal generalizado con Adición de la variable Clase
 
 ```{r}
 datos_lm6 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, SEMANA, 
@@ -401,7 +401,7 @@ lm6 <- glm(NRO_ACCID ~ FESTIVIDAD+SEMANA+CLASE, family = "poisson",
            data = datos_lm6)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### PredicciÃón y Evaluación para los datos de Entrenamiento
 
 ```{r}
 datos_lm6_p <- datos_lm6[,-5]
@@ -414,7 +414,7 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f",
         lm6_tmse, lm6_tmae, lm6_r2)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 datos_lm6_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, SEMANA, 
@@ -430,9 +430,9 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm6_tmse, lm6_tmae, lm6_r2)
 
 ```
 
-En este modelo lineal generalizado con la familia de distribuciÃ³n Poisson con adiciÃ³n de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 96.63%,y para la etapa de validaciÃ³n para el aÃ±o 2018 el $R^2$ fue de 87.48%,lo cual indica que dicho modelo sirve para predecir segÃºn los resultados obtenidos. AdemÃ¡s la diferencia entre el MSE de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 10.43%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el aÃ±o 2019. 
+En este modelo lineal generalizado con la familia de distribución Poisson con adición de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 88.84%,y para la etapa de validación para el año 2018 el $R^2$ fue de 89.65%,lo cual indica que dicho modelo sirve para predecir según los resultados obtenidos. Además la diferencia entre el MSE de entrenamiento y validación para el año 2018 fue de 9.15%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el año 2019. 
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r}
 datos_lm6_v1 <- datos_vl02 %>% group_by(FECHA, FESTIVIDAD, SEMANA, 
@@ -448,12 +448,12 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm6_tmse, lm6_tmae, lm6_r2)
 
 ```
 
-En este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del  1.27%, que fue menor al valor obtenido con la validaciÃ³n del 2018 (10.43%), que indica claramente que no hay problemas de sobreentrenamiento. AdemÃ¡s se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 88.83%, evidenciando asÃ­ que este modelo lineal generalizado con la adiciÃ³n de la variable Clase es un buen candidato para predecir la accidentalidad en MedellÃ­n.
+En este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del  1.27%, que fue menor al valor obtenido con la validaciÃ³n del 2018 (9.15%), que indica claramente que no hay problemas de sobreentrenamiento. AdemÃ¡s se puede observar que el $R^2$ de los datos de validación para el año 2019 predice un 88.83%, evidenciando así que este modelo lineal generalizado con la adición de la variable Clase es un buen candidato para predecir la accidentalidad en Medellín.
 
 
 ## Mensual
 
-## Modelo lineal generalizado con AdiciÃ³n de la variable Clase
+## Modelo lineal generalizado con Adición de la variable Clase
 
 ```{r}
 datos_lm7 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, MES, 
@@ -463,7 +463,7 @@ lm7 <- glm(NRO_ACCID ~ FESTIVIDAD+MES+CLASE, family = "poisson",
            data = datos_lm7)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de Entrenamiento
+### Predicción y Evaluación para los datos de Entrenamiento
 
 ```{r}
 datos_lm7_p <- datos_lm7[,-5]
@@ -476,7 +476,7 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f",
         lm7_tmse, lm7_tmae, lm7_r2)
 ```
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2018
+### Predicción y Evaluación para los datos de Validación en el año 2018
 
 ```{r}
 datos_lm7_v1 <- datos_vl %>% group_by(FECHA, FESTIVIDAD, MES, 
@@ -492,9 +492,9 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm7_tmse, lm7_tmae, lm7_r2)
 
 ```
 
-En este modelo lineal generalizado con la familia de distribuciÃ³n Poisson con adiciÃ³n de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 96.6%,y para la etapa de validaciÃ³n para el aÃ±o 2018 el $R^2$ fue de 94.41%,lo cual indica que dicho modelo sirve para predecir segÃºn los resultados obtenidos. AdemÃ¡s la diferencia entre el MSE de entrenamiento y validaciÃ³n para el aÃ±o 2018 fue de 2.19%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el aÃ±o 2019. 
+En este modelo lineal generalizado con la familia de distribución Poisson con adición de la variable Clase se obtuvo un $R^2$ en la etapa de entrenamiento de 88.84%,y para la etapa de validación para el año 2018 el $R^2$ fue de 88.81%,lo cual indica que dicho modelo sirve para predecir según los resultados obtenidos. Además la diferencia entre el MSE de entrenamiento y validación para el año 2018 fue de 2.19%, lo que indica que al ser menor del 15% no hay problemas de sobreentrenamiento. Luego se procede a validar con el año 2019. 
 
-### PredicciÃ³n y EvaluaciÃ³n para los datos de ValidaciÃ³n en el aÃ±o 2019
+### Predicción y Evaluación para los datos de Validación en el año 2019
 
 ```{r}
 datos_lm7_v1 <- datos_vl02 %>% group_by(FECHA, FESTIVIDAD, MES, 
@@ -510,23 +510,82 @@ sprintf("MSE: %f, MAE: %f, R2 Score: %f", lm7_tmse, lm7_tmae, lm7_r2)
 
 ```
 
-En este modelo la diferencia del MSE entre los datos de entrenamiento y validaciÃ³n del 2019 es del  1.3%, que fue menor al valor obtenido con la validaciÃ³n del 2018 (2.19%), que indica claramente que no hay problemas de sobreentrenamiento. AdemÃ¡s se puede observar que el $R^2$ de los datos de validaciÃ³n para el aÃ±o 2019 predice un 88.83%, evidenciando asÃ­ que este modelo lineal generalizado con la adiciÃ³n de la variable Clase es un buen candidato para predecir la accidentalidad en MedellÃ­n.
+En este modelo la diferencia del MSE entre los datos de entrenamiento y validación del 2019 es del  1.3%, que fue menor al valor obtenido con la validación del 2018 (2.19%), que indica claramente que no hay problemas de sobreentrenamiento. Además se puede observar que el $R^2$ de los datos de validación para el año 2019 predice un 88.83%, evidenciando así que este modelo lineal generalizado con la adición de la variable Clase es un buen candidato para predecir la accidentalidad en Medellín.
 
 ## Predicciones
 
-## PredicciÃ³n Diaria del 2020
+Ahora, se muestra gráficamente la potencia de la predicción para el año 2020, según los datos reales de 2020 que se poseen desde la fecha 2020-01-01, hasta la fecha 2020-08-31.
+
+Para ello se creó una base que contuviese los datos del año 2020 real y el del año 2020 con las predicciones; como en este año se tomó desde 2020-01-01 hasta 2020-12-31 porque es el predictivo, entonces para esta comparación se decide que va hasta 2020-08-31, para que ésta posea la misma longitud de los datos que se tienen reales.
+
+Igualmente, se diseñó una función para contener la relación entre la desviación estándar y la raíz cuadrada de la longitud. Para luego con ayuda de esto y junto a las especificaciones del gráfico, observar la cantidad de accidentes reales y predichos mediante boxplots, desde el mes 01 hasta el mes 08.
+
+```{r }
+#Se creó una función que contuviera la relación entre desviación estándar y la raíz cuadrada de la longitud
+sem <- function(x, na.rm = FALSE) {
+  out <- sd(x, na.rm = na.rm)/sqrt(length(x))
+  return(out)}
+
+#Se añade la base de datos especificada
+datos_real_pred <- read_excel("C:/Users/Usuario/Downloads/Base_2020_real_predict.xlsx")
+
+#Se hacen los agrupamientos necesarios y se omite la varible Incendio para que en ambos años estén las mismas 'Clases'
+
+datos_real_pred_001 <- datos_real_pred[datos_real_pred$CLASE!="Incendio", ]
+
+datos_real_pred_001$AÑO<-as.integer(datos_real_pred_001$AÑO)
+
+datos_real_pred_01 <- datos_real_pred_001 %>% group_by(AÑO, MES, CLASE, NRO_ACCID) %>% 
+  count() %>% mutate(NRO_ACCID=as.integer(NRO_ACCID))
+
+#Gráfico Comparativo de años reales y predictivos del 2020
+datos_real_pred_01 %>% 
+  group_by(MES, AÑO) %>% 
+  summarize(Número_de_Accidentes = mean(NRO_ACCID),
+            se = sem(NRO_ACCID)) %>% 
+  ggplot(aes(x = MES, 
+             y = Número_de_Accidentes, 
+             group = AÑO,  
+             color = AÑO)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Número_de_Accidentes - se, 
+                    ymax = Número_de_Accidentes + se)) +
+  geom_line()
+
+
+```
+
+Nota: Se aclara que en esta gráfica los años que se comparan son dos (2020 con datos reales y 2020 con los datos predictivos). En ese orden, se hace referencia a 'año 1' como el año 2020 con los datos reales que se poseen, y de la misma forma, se hace referencia a 'año 2', como el año 2020 con las predicciones. Por tanto, se aconseja hacer caso omiso a los valores de años 1.25, 1.5 y 1.75.
+
+En la gráfica se observa que el año 1 (representado con la línea y boxplots color negro) tiene menos variabilidad ya que son los valores reales que se poseen de la cantidad de accidentes durante el tiempo que se especificó anteriormente, e igualmente se puede ver su promedio de números de accidentes a través de los 8 meses, representado por el punto de los diagramas de Cajas y Bigotes.
+
+Luego, para el año 2 (representado con la línea y boxplots color azul) se nota más variabilidad, lo cual tiene sentido ya que hace referencia a los valores predictivos según el modelo empleado, e igualmente se puede ver su promedio de números de accidentes a través de los 8 meses, representado por el punto que se observa para cada Boxplot.
+
+Se nota claramente que para los dos primeros meses del año 2020 el promedio de número de accidentes del 'año 2', que contiene los valores predictivos, son muy similares a los que se observan del año 1, con los valores reales. Luego, para los demás meses del año 2020 se puede apreciar que el año con los datos reales (año 1) su promedio de accidentes bajó, observándose así que el año con las predicciones quedó por encima de éste. Sin embargo, ésto no significa que el año 2 tenga malas predicciones, ni tampoco quiere decir que el modelo no tenía potencia predictiva, ya que anteriormente se había notado su capacidad predictiva en el estudio de la Accidentalidad de Medellín según su MSE y $R^2$, lo que realmente sucede es que se debe poner en contexto lo que sucedía en el país en dichos meses.
+
+Para el año 2020 en Colombia, El Ministerio de Salud y Protección Social confirma el primer caso de COVID-19 (enfermedad infecciosa, causada por el coronavirus) en el mes 3, a causa de ello el 8 de marzo de 2020, el presidente Iván Duque Márquez dio a conocer las acciones de contención en el país. Por consiguiente, los ciudadanos adoptando dichas medidas y con el propósito de que no aumentara la tasa de contagios por coronavirus, empezaron a tener conciencia social y a cuidarse y así mismo a cuidar a los demás. De hecho, desde febrero que ya se estaba especulando que el COVID-19 iba a llegar al país, muchas personas ya se estaban cuidando.
+
+Así, entre las medidas que se dieron, se encuentra la de cierre de vías en marzo, que es por eso que gráficamente se notó un declive para los datos del promedio de accidentes a partir del mes 3 para los datos reales, 'año 1'. Además de que luego se implementó cuarentena obligatoria por el causal de pandemia, que fue conocido como 'El Aislamiento Preventivo Obligatorio en Colombia o confinamiento de Colombia de 2020' que se inició el 25 de marzo de 2020, y que en un principio se había decretado por 19 días, pero luego fue variando y extendiéndose dicha cuarentena, según la tasa de contagios.
+
+Para el año 2021 no se poseen valores reales, puesto que no tenemos datos con respecto a dicha información.
+
+A continuación, se presentan las predicciones diarias, semanales y mensuales que se obtuvieron para los años 2020 y 2021.
+
+## Predicción Diaria del 2020
+
+Se presenta una tabla con el encabezado de las primeras 10 observaciones para las predicciones diarias obtenidas para el año 2020:
 
 ```{r}
-Base_prediccion <- read.csv("prediccion.csv", sep = ",", encoding = "UTF-8")
+Base_prediccion <- read.csv("C:/Users/Usuario/Downloads/prediccion.csv", sep = ",", encoding = "UTF-8")
 
 Base_prediccion <- Base_prediccion[,-1]
 
-Base_prediccion_2020 <- subset(Base_prediccion, (AÃ‘O != '2021'))
+Base_prediccion_2020 <- subset(Base_prediccion, (AÑO != '2021'))
 
 Base_prediccion_2020$FECHA <- as.Date(Base_prediccion_2020$FECHA)
 Base_prediccion_2020$CLASE <- as.factor(Base_prediccion_2020$CLASE)
 Base_prediccion_2020$DIA_SEMANA <- as.factor(Base_prediccion_2020$DIA_SEMANA)
-Base_prediccion_2020$AÃ‘O <- as.integer(Base_prediccion_2020$AÃ‘O)
+Base_prediccion_2020$AÑO <- as.integer(Base_prediccion_2020$AÑO)
 Base_prediccion_2020$FESTIVIDAD <- as.factor(Base_prediccion_2020$FESTIVIDAD)
 
 prediccion_2020 <- predict(object = lm4, newdata = Base_prediccion_2020,
@@ -534,19 +593,25 @@ prediccion_2020 <- predict(object = lm4, newdata = Base_prediccion_2020,
 prediccion_diaria2020 <- Base_prediccion_2020 %>% 
   mutate(NRO_ACCID = round(prediccion_2020,0))
 
-head(prediccion_diaria2020, 10)
+diario_20_02 <- prediccion_diaria2020 %>%
+  group_by(FECHA, DIA_SEMANA, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=NRO_ACCID)
+
+head(diario_20_02, 10)
 
 ```
 
-## PredicciÃ³n Diaria del 2021
+## Predicción Diaria del 2021
+
+A continuación, se presenta una tabla con el encabezado de las primeras 10 observaciones para las predicciones diarias obtenidas para el año 2021:
 
 ```{r}
-Base_prediccion_2021 <- subset(Base_prediccion, (AÃ‘O != '2020'))
+Base_prediccion_2021 <- subset(Base_prediccion, (AÑO != '2020'))
 
 Base_prediccion_2021$FECHA <- as.Date(Base_prediccion_2021$FECHA)
 Base_prediccion_2021$CLASE <- as.factor(Base_prediccion_2021$CLASE)
 Base_prediccion_2021$DIA_SEMANA <- as.factor(Base_prediccion_2021$DIA_SEMANA)
-Base_prediccion_2021$AÃ‘O <- as.integer(Base_prediccion_2021$AÃ‘O)
+Base_prediccion_2021$AÑO <- as.integer(Base_prediccion_2021$AÑO)
 Base_prediccion_2021$FESTIVIDAD <- as.factor(Base_prediccion_2021$FESTIVIDAD)
 
 prediccion_2021 <- predict(object = lm4, newdata = Base_prediccion_2021,
@@ -554,20 +619,26 @@ prediccion_2021 <- predict(object = lm4, newdata = Base_prediccion_2021,
 prediccion_diaria2021 <- Base_prediccion_2021 %>% 
   mutate(NRO_ACCID = round(prediccion_2021,0))
 
-head(prediccion_diaria2021, 10)
+diario_21_02 <- prediccion_diaria2021 %>%
+  group_by(FECHA, DIA_SEMANA, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=NRO_ACCID)
+
+head(diario_21_02, 10)
 
 ```
 
-## PredicciÃ³n Semanal del 2020
+## Predicción Semanal del 2020
+
+De igual forma, se presenta una tabla con el encabezado de las primeras 10 observaciones para las predicciones semanales que se obtuvieron para el año 2020:
 
 ```{r}
 
 Base_prediccion03 <- Base_prediccion[,-4]
 Base_prediccion04 <- Base_prediccion03[,-4]
 
-Base_prediccion_2020 <- subset(Base_prediccion, (AÃ‘O != '2021'))
+Base_prediccion_2020 <- subset(Base_prediccion, (AÑO != '2021'))
 
-Base_prediccion_2020 <- subset(Base_prediccion04, (AÃ‘O != '2021'))
+Base_prediccion_2020 <- subset(Base_prediccion04, (AÑO != '2021'))
 
 
 Base_prediccion_2020$SEMANA <- as.integer(Base_prediccion_2020$SEMANA)
@@ -578,102 +649,134 @@ prediccion_2020_02 <- predict(object = lm6, newdata = Base_prediccion_2020,
 prediccion_semanal2020 <- Base_prediccion_2020 %>% 
   mutate(NRO_ACCID = round(prediccion_2020_02,0))
 
-head(prediccion_semanal2020, 10)
+semanal <- prediccion_semanal2020 %>% group_by(CLASE, SEMANA = week(FECHA), NRO_ACCID, FESTIVIDAD) %>% summarize(total = n())
+semanal <- mutate(semanal, NRO_ACCID_TOTAL=NRO_ACCID*total)
 
-#summary(Base_prediccion03$SEMANA, Base_prediccion03$CLASE)
+semanal_20_02 <- semanal %>%
+  group_by(SEMANA, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=sum(NRO_ACCID_TOTAL))
 
-semanal <- prediccion_semanal2020 %>% group_by(CLASE, semana = week(FECHA), NRO_ACCID) %>% summarize(total = n())
-semanal
-
-#datos_lm7 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, MES, 
-#                                   CLASE) %>% count(name = "NRO_ACCID")
-
-semanal <- prediccion_semanal2020 %>% group_by(CLASE, SEMANA, NRO_ACCID) %>% count(name = "NRO_ACCID")
-
-semanal <- prediccion_semanal2020 %>% group_by(SEMANA, 
-                                      CLASE, NRO_ACCID)
-
+head(semanal_20_02, 10)
 ```
 
-## PredicciÃ³n Semanal del 2021
+## Predicción Semanal del 2021
+
+También, acá se puede observar una tabla con el encabezado de las primeras 10 observaciones para las predicciones semanales que se obtuvieron para el año 2021:
 
 ```{r}
-base_final03 <- subset(base_final02, (AÃ‘O != '2020'))
-Base_prediccion_2021 <- subset(Base_prediccion, (AÃ‘O != '2020'))
+base_final03 <- subset(base_final02, (AÑO != '2020'))
+Base_prediccion_2021 <- subset(Base_prediccion, (AÑO != '2020'))
 
 Base_prediccion_2021$FECHA <- as.Date(Base_prediccion_2021$FECHA)
 Base_prediccion_2021$CLASE <- as.factor(Base_prediccion_2021$CLASE)
 Base_prediccion_2021$DIA_SEMANA <- as.factor(Base_prediccion_2021$DIA_SEMANA)
-Base_prediccion_2021$AÃ‘O <- as.integer(Base_prediccion_2021$AÃ‘O)
+Base_prediccion_2021$AÑO <- as.integer(Base_prediccion_2021$AÑO)
 Base_prediccion_2021$FESTIVIDAD <- as.factor(Base_prediccion_2021$FESTIVIDAD)
 
 prediccion_2021 <- predict(object = lm4, newdata = Base_prediccion_2021,
                           type = "response")
-prediccion_diaria2021 <- Base_prediccion_2021 %>% 
+prediccion_semanal2021 <- Base_prediccion_2021 %>% 
   mutate(NRO_ACCID = round(prediccion_2021,0))
 
-head(prediccion_diaria2021, 10)
+#borrando columnas no necesarias
+prediccion_semanal2021 <-  prediccion_semanal2021[,c(-1,-2,-4,-5)]
 
+#Se agrupó por semana 2021
+semanal_21 <- prediccion_semanal2021 %>% group_by(CLASE, SEMANA, NRO_ACCID, FESTIVIDAD) %>% summarize(total = n())
+semanal_21 <- mutate(semanal_21, NRO_ACCID_TOTAL=NRO_ACCID*total)
+
+semanal_21_02 <- semanal_21 %>%
+  group_by(SEMANA, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=sum(NRO_ACCID_TOTAL))
+
+head(semanal_21_02, 10)
 ```
 
-## PredicciÃ³n Mensual del 2020
+## Predicción Mensual del 2020
+
+De manera resumida, se presenta una tabla con el encabezado de las primeras 10 observaciones para las predicciones mensuales que se obtuvieron para el año 2020:
 
 ```{r}
-Base_prediccion <- read.csv("prediccion.csv", sep = ",", encoding = "UTF-8")
+Base_prediccion <- read.csv("C:/Users/Usuario/Downloads/prediccion.csv", sep = ",", encoding = "UTF-8")
 
-Base_prediccion_2020 <- subset(Base_prediccion, (AÃ‘O != '2021'))
+Base_prediccion_2020 <- subset(Base_prediccion, (AÑO != '2021'))
 
 Base_prediccion_2020$FECHA <- as.Date(Base_prediccion_2020$FECHA)
 Base_prediccion_2020$CLASE <- as.factor(Base_prediccion_2020$CLASE)
 Base_prediccion_2020$DIA_SEMANA <- as.factor(Base_prediccion_2020$DIA_SEMANA)
-Base_prediccion_2020$AÃ‘O <- as.integer(Base_prediccion_2020$AÃ‘O)
+Base_prediccion_2020$AÑO <- as.integer(Base_prediccion_2020$AÑO)
 Base_prediccion_2020$FESTIVIDAD <- as.factor(Base_prediccion_2020$FESTIVIDAD)
 
 prediccion_2020 <- predict(object = lm4, newdata = Base_prediccion_2020,
                           type = "response")
-prediccion_diaria2020 <- Base_prediccion_2020 %>% 
+prediccion_mensual2020 <- Base_prediccion_2020 %>% 
   mutate(NRO_ACCID = round(prediccion_2020,0))
 
-head(prediccion_diaria2020, 10)
+#Se borraron columnas no necesarias
+prediccion_mensual2020 <-  prediccion_mensual2020[,c(-1,-2,-3,-5,-7)]
 
+#Agrupamiento por mes 2020
+
+#Se agrupó por mes y si fue en día festivo o no
+mensual_20 <- prediccion_mensual2020 %>% group_by(CLASE, MES, NRO_ACCID, FESTIVIDAD) %>% summarize(total = n())
+mensual_20 <- mutate(mensual_20, NRO_ACCID_TOTAL=NRO_ACCID*total)
+
+mensual_20_02 <- mensual_20 %>%
+  group_by(MES, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=sum(NRO_ACCID_TOTAL))
+
+head(mensual_20_02, 10)
 ```
 
-## PredicciÃ³n Mensual del 2021
+## Predicción Mensual del 2021
+
+Igualmente, se presenta una tabla con el encabezado de las primeras 10 observaciones para las predicciones mensuales que se obtuvieron para el año 2021:
 
 ```{r}
-Base_prediccion_2021 <- subset(Base_prediccion, (AÃ‘O != '2020'))
+Base_prediccion_2021 <- subset(Base_prediccion, (AÑO != '2020'))
 
 Base_prediccion_2021$FECHA <- as.Date(Base_prediccion_2021$FECHA)
 Base_prediccion_2021$CLASE <- as.factor(Base_prediccion_2021$CLASE)
 Base_prediccion_2021$DIA_SEMANA <- as.factor(Base_prediccion_2021$DIA_SEMANA)
-Base_prediccion_2021$AÃ‘O <- as.integer(Base_prediccion_2021$AÃ‘O)
+Base_prediccion_2021$AÑO <- as.integer(Base_prediccion_2021$AÑO)
 Base_prediccion_2021$FESTIVIDAD <- as.factor(Base_prediccion_2021$FESTIVIDAD)
 
 prediccion_2021 <- predict(object = lm4, newdata = Base_prediccion_2021,
                           type = "response")
-prediccion_diaria2021 <- Base_prediccion_2021 %>% 
+prediccion_mensual2021 <- Base_prediccion_2021 %>% 
   mutate(NRO_ACCID = round(prediccion_2021,0))
 
-head(prediccion_diaria2021, 10)
+#Se borranron columnas no necesarias
+prediccion_mensual2021 <-  prediccion_mensual2021[,c(-1,-2,-3,-5,-7)]
 
+#Agrupamiento por mes 2021
+
+#Se agrupÃ³ por mes y si fue en dÃ­a festivo o no
+mensual_21 <- prediccion_mensual2021 %>% group_by(CLASE, MES, NRO_ACCID, FESTIVIDAD) %>% summarize(total = n())
+mensual_21 <- mutate(mensual_21, NRO_ACCID_TOTAL=NRO_ACCID*total)
+
+mensual_21_02 <- mensual_21 %>%
+  group_by(MES, CLASE, FESTIVIDAD) %>%
+  summarise(NRO_TOTAL_ACCID=sum(NRO_ACCID_TOTAL))
+
+head(mensual_21_02, 10)
 ```
 
+### 2 - Agrupamiento de los barrios de Medellín de acuerdo a su accidentalidad
 
-### 2 - Agrupamiento de los barrios de MedellÃ­n de acuerdo a su accidentalidad
+Antes de realizar la agrupación de barrios según la accidentalidad se decide mostrar primero un mapa de calor de accidentalidad en la ciudad de Medellín entre los años de 2014 y 2019, ya que este mapa a su vez representaría la historia de la accidentalidad. Lo anterior, teniendo presente que para este proyecto se pretende predecir para los años de 2020 y 2021.
 
-Antes de realizar la agrupaciÃ³n de barrios segÃºn la accidentalidad se decide mostrar primero un mapa de calor de accidentalidad en la ciudad de MedellÃ­n entre los aÃ±os de 2014 y 2019, ya que este mapa a su vez representarÃ­a la historia de la accidentalidad. Lo anterior, teniendo presente que para este proyecto se pretende predecir para los aÃ±os de 2020 y 2021.
+### Mapa de Accidentes en la ciudad de Medellín
 
-### Mapa de Accidentes en la ciudad de MedellÃ­n
-
-Para la elaboraciÃ³n del mapa calor segÃºn la accidentalidad, se descargÃ³ un archivo .shp del LÃ­mite Barrio Vereda Catastral
+Para la elaboración del mapa calor según la accidentalidad, se descargó un archivo .shp del Límite Barrio Vereda Catastral
 
 ```{r}
 #lectura de .csv y .shp
-catastral <- read.csv("Limite_Barrio_Vereda_Catastral.csv", encoding="UTF-8")
+catastral <- read.csv("C:/Users/Usuario/Downloads/Limite_Barrio_Vereda_Catastral.csv", encoding="UTF-8")
 
-catastro <- read_sf("Limite_Barrio_Vereda_Catastral.shp")
+catastro <- read_sf("C:/Users/Usuario/Downloads/Limite_Barrio_Vereda_Catastral.shp")
 
-barrio_vereda <- read.csv("Barrio_Vereda_2014.csv", encoding="UTF-8")
+barrio_vereda <- read.csv("C:/Users/Usuario/Downloads/Barrio_Vereda_2014.csv", encoding="UTF-8")
 
 ```
 
@@ -682,23 +785,23 @@ barrio_vereda <- read.csv("Barrio_Vereda_2014.csv", encoding="UTF-8")
 
 Unido <- inner_join(catastral, base_final, by = c("COMUNA" = "NUMCOMUNA"))
 
-nueva_base <- Unido %>% filter(AÃ‘O >= 2014 & AÃ‘O <= 2019) %>% 
+nueva_base <- Unido %>% filter(AÑO >= 2014 & AÑO <= 2019) %>% 
   group_by(CODIGO) %>%
   summarise(accidentes = n()) %>%
   ungroup()
 
-#Se realizÃ³ la conversiÃ³n de CODIGO a formato numÃ©rico
+#Se realizó la conversión de CODIGO a formato numérico
 
 catastro$CODIGO <- as.numeric(as.character(catastro$CODIGO))
 
-#Se utilizÃ³ 'inner join' para unir dos bases y para luego generar mapa
+#Se utilizó 'inner join' para unir dos bases y para luego generar mapa
 
 mapa <- inner_join(catastro, nueva_base, by = c("CODIGO" = "CODIGO"))
 
 mypal <- colorNumeric(palette = c("#000000","#280100","#3D0201","#630201","#890100","#B00100","#DD0100","#F50201",
                                    "#FF5F5E","#FF7A79","#FF9796","#FEB1B0","#FDC9C8", "#FFE5E4"), domain = mapa$accidentes, reverse = T)
 
-# CreaciÃ³n del mapa
+# Creación del mapa
 
 leaflet() %>% addPolygons(data = mapa, color = "#0A0A0A", opacity = 0.6, weight = 1, fillColor = ~mypal(mapa$accidentes),
                           fillOpacity = 0.6, label = ~NOMBRE_BAR,
@@ -711,7 +814,7 @@ leaflet() %>% addPolygons(data = mapa, color = "#0A0A0A", opacity = 0.6, weight 
 ```{r}
 # Cantidad de Accidentes por Comuna
 
-medellin_comuna <- base_final %>% filter(AÃ‘O >= 2014 & AÃ‘O <= 2019) %>% 
+medellin_comuna <- base_final %>% filter(AÑO >= 2014 & AÑO <= 2019) %>% 
   group_by(COMUNA) %>% 
   summarize(accidentes = n())
 
@@ -721,18 +824,18 @@ ggplot(data = medellin_comuna, aes(x = reorder(COMUNA,+accidentes), y = accident
                 position = position_dodge(width = 0.7), size = 3.5, vjust = 0.5, hjust = -0.1, col = "black") +
   xlab("Comuna") + 
   ylab("Total de Accidentes") +
-  ggtitle("Total de Accidentes por Comuna entre los aÃ±os 2014 y 2019") +
+  ggtitle("Total de Accidentes por Comuna entre los años 2014 y 2019") +
   ylim(c(0,50000)) +
   theme_minimal() +
   coord_flip()
 ```
 
-Al analizar la accidentalidad por Barrio y Comuna, tanto en el mapa de accidentalidad como en el grÃ¡fico, se observÃ³ que La Candelaria es el lugar donde mÃ¡s se presentan accidentes entre los aÃ±os 2014 y 2019, seguida por Laureles y Castilla. TambiÃ©n, se evidencia que Palmitas es el lugar donde ocurre menos accidentalidad en MedellÃ­n durante los aÃ±os 2014-2019. AdemÃ¡s en el mapa de calor se puede notar que la zona centro y las vÃ­as principales son las mÃ¡s afectadas por los accidentes.
+Al analizar la accidentalidad por Barrio y Comuna, tanto en el mapa de accidentalidad como en el gráfico, se observó que La Candelaria es el lugar donde más se presentan accidentes entre los años 2014 y 2019, seguida por Laureles y Castilla. También, se evidencia que Palmitas es el lugar donde ocurre menos accidentalidad en Medellín durante los años 2014-2019. Además en el mapa de calor se puede notar que la zona centro y las vías principales son las más afectadas por los accidentes.
 
-Luego se procede a crear una funciÃ³n para calular distancias para datos geoespaciales y ademÃ¡s se crea un dendograma para asÃ­ emprender la bÃºsqueda del $K$ Ã³ptimo para el agrupamiento (tomando los datos de 2014 hasta 2017, ya que Ã©stos fueron los aÃ±os que se utilizaron para el modelo de predicciÃ³n).
+Luego se procede a crear una función para calular distancias para datos geoespaciales y además se crea un dendograma para así emprender la búsqueda del $K$ óptimo para el agrupamiento (tomando los datos de 2014 hasta 2017, ya que éstos fueron los años que se utilizaron para el modelo de predicción).
 
 ```{r}
-#Haciendo uso de la librerÃ­a 'geosphere', se creÃ³ una funciÃ³n para calcular las distancias para datos geoespaciales
+#Haciendo uso de la librería 'geosphere', se creó una función para calcular las distancias para datos geoespaciales
 
 geo.dist = function(df) {
   require(geosphere)
@@ -747,19 +850,19 @@ geo.dist = function(df) {
 ```
 
 ```{r }
-#Se realizÃ³ la conversiÃ³n de la latitud y longitud al formato numÃ©rico
+#Se realizó la conversión de la latitud y longitud al formato numérico
 
 base_final03$LATITUD <- as.numeric(as.character(base_final03$LATITUD))
 base_final03$LONGITUD<- as.numeric(as.character(base_final03$LONGITUD))
 ```
 
 ```{r }
-#Se creÃ³ un nuevo dataset para el agrupamiento, segÃºn longitud, latitud y barrio almacenado en 'df'
+#Se creó un nuevo dataset para el agrupamiento, según longitud, latitud y barrio almacenado en 'df'
 df <- data.frame(long = base_final03$LONGITUD, lat = base_final03$LATITUD, barrios = base_final03$BARRIO)
 ```
 
 ```{r}
-#Se creÃ³ con la funciÃ³n 'geo.dist', una matriz de distancias
+#Se creó con la función 'geo.dist', una matriz de distancias
 df1 <- df[1:1000, ]
 d <- geo.dist(df1)
 hc <- hclust(d)
@@ -768,12 +871,12 @@ df1$clust <- cutree(hc, k = 6)
 head(df1,10)
 ```
 
-### Mapa de agrupamiento segÃºn latitud y longitud.
+### Mapa de agrupamiento según latitud y longitud.
 
-Para la realizaciÃ³n del mapa de agrupamiento segÃºn latitud y longitud, se descargÃ³ un archivo .shp del LÃ­mite Catastral de Comunas y Corregimientos.
+Para la realización del mapa de agrupamiento según latitud y longitud, se descargó un archivo .shp del Límite Catastral de Comunas y Corregimientos.
 
 ```{r}
-s <- shapefile("Limite_Catastral_de__Comunas_y_Corregimientos.shp")
+s <- shapefile("C:/Users/Usuario/Downloads/Limite_Catastral_de__Comunas_y_Corregimientos.shp")
 map.df1 <- (s)
 ggplot(map.df1)+
   geom_path(aes(x=long, y=lat, group=group))+
@@ -782,19 +885,19 @@ ggplot(map.df1)+
   coord_fixed()
 ```
 
-El anterior mapa muestra una posible agrupaciÃ³n, segÃºn las medidas geoespaciales de la latitud y la longitud de los accidentes. Sin embargo, este agrupamiento se utiliza como referencia porque para su creaciÃ³n no se utilizÃ³ ningÃºn mÃ©todo para la elecciÃ³n del $K$ Ã³ptimo.
+El anterior mapa muestra una posible agrupación, según las medidas geoespaciales de la latitud y la longitud de los accidentes. Sin embargo, este agrupamiento se utiliza como referencia porque para su creación no se utilizó ningún método para la elección del $K$ óptimo.
 
-AsÃ­ que se procede a realizar una clusterizaciÃ³n del nÃºmero de accidentes por Gravedad y Barrio haciendo uso del algoritmo "k means" para la bÃºsqueda del $K$ Ã³ptimo.
+Así que se procede a realizar una clusterización del número de accidentes por Gravedad y Barrio haciendo uso del algoritmo "k means" para la búsqueda del $K$ óptimo.
 
-### ClusterizaciÃ³n con NÃºmero de accidentes por Gravedad y Barrio.
+### Clusterización con Número de accidentes por Gravedad y Barrio.
 
-Con los datos preprocesados y el subconjunto de datos que se seleccionaron, Se les realizÃ³ un escalamiento y centrado de la base de datos.
+Con los datos preprocesados y el subconjunto de datos que se seleccionaron, se les realizó un escalamiento y centrado de la base de datos.
 
 ```{r}
 #Numero de accidentes por Barrio
 datos_cluster <- base_final03 %>% group_by(BARRIO) %>% count(name = "TOTAL_ACCIDENTES")
 
-#NÃºmero de accidentes por barrio, segÃºn gravedad almacenado en 'df'
+#Número de accidentes por barrio, según gravedad almacenado en 'df'
 df <- as.matrix(table(base_final03$BARRIO, base_final03$GRAVEDAD))
 df <- data.frame(Con_heridos = df[,1], Con_muertos = df[,2], Solo_danos = df[,3])
 
@@ -805,14 +908,14 @@ kmm = kmeans(scaled_data, 5, nstart = 50, iter.max = 15 )
 
 ```
 
-Para este caso, con un k=5, se evidencia que el valor de Suma de Cuadrados entre grupos (SS between) sobre la Suma de Cuadrados Totales fue de aproximadamente 85.1% (0.851), que indica un buen ajuste porque es cercano a 1. Sin embargo, es mejor graficar el WSS contra el nÃºmero de clÃºster, ya que este nÃºmero se debe especificar de antemano.
+Para este caso, con un k=5, se evidencia que el valor de Suma de Cuadrados entre grupos (SS between) sobre la Suma de Cuadrados Totales fue de aproximadamente 85.1% (0.851), que indica un buen ajuste porque es cercano a 1. Sin embargo, es mejor graficar el WSS contra el número de clúster, ya que este número se debe especificar de antemano.
 
-Luego se procede a hallar el k Ã³ptimo.
+Luego se procede a hallar el k óptimo.
 
 ### El MÃ©todo del Codo
 
 ```{r}
-#Se fijÃ³ una semilla y se realizÃ³ el cÃ¡lculo y se grÃ¡ficÃ³ el WSS(total within - cluster sum of square) para k = 2 hasta k = 10
+#Se fijó una semilla y se realizó el calculo y se grafico el WSS(total within - cluster sum of square) para k = 2 hasta k = 10
 set.seed(2021022)
 k.max <- 10
 datos <- scaled_data
@@ -820,9 +923,9 @@ wss <- sapply(2:k.max,
               function(k){kmeans(datos, k, nstart = 50, iter.max = 15 )$tot.withinss})
 plot(2:k.max, wss, 
      type = "b", pch = 19, frame = FALSE,
-     xlab = "NÃºmero de Clusters (k)",
+     xlab = "Número de Clusters (k)",
      ylab = "WSS Total", 
-     main = "MÃ©todo del Codo", col="forestgreen")
+     main = "Método del Codo", col="forestgreen")
 ```
 
 ```{r}
@@ -830,38 +933,38 @@ plot(2:k.max, wss,
 km <- kmeans(datos, 5)
 ```
 
-SegÃºn la grÃ¡fica del MÃ©todo del Codo posiblemente el k=4 o k=5 serÃ­an buenos candidatos para el k Ã³ptimo, ya que presentan un cambio mÃ¡s suave en las pendientes en comparaciÃ³n con k=2 o k=3. Igualmente al observar el between SS / total SS para k=5, mencionado anteriomente, se evidencia un 85.1 %, lo cual indica un buen ajuste. AdemÃ¡s como se graficÃ³ el WSS contra el nÃºmero de clÃºsteres, se refleja que es un buen candidato.
+Según la gráfica del Método del Codo posiblemente el k=4 o k=5 serían buenos candidatos para el k óptimo, ya que presentan un cambio mÃ¡s suave en las pendientes en comparación con k=2 o k=3. Igualmente al observar el between SS / total SS para k=5, mencionado anteriomente, se evidencia un 85.1 %, lo cual indica un buen ajuste. Además como se graficó el WSS contra el número de clústeres, se refleja que es un buen candidato.
 
-DespuÃ©s, se busca el $K$ Ã³ptimo haciendo uso del paquete NbClust, de la siguiente forma:
+Después, se busca el $K$ óptimo haciendo uso del paquete NbClust, de la siguiente forma:
 
 ```{r }
 nb <- NbClust(scaled_data, diss=NULL, distance = "euclidean", 
               min.nc=4, max.nc=8, method = "kmeans", 
               index = "all", alphaBeale = 0.1)
 ```
-El cual sugiere que el $K$ Ã³ptimo es 4.
+El cual sugiere que el $K$ óptimo es 4.
 
 
 ```{r }
-hist(nb$Best.nc[1,], breaks = max(na.omit(nb$Best.nc[1,])), main = "Histograma del K Ã³ptimo ", xlab = "K", ylab = "Frecuencia", col="darkorchid4")
+hist(nb$Best.nc[1,], breaks = max(na.omit(nb$Best.nc[1,])), main = "Histograma del K Óptimo ", xlab = "K", ylab = "Frecuencia", col="darkorchid4")
 ```
 
-SegÃºn el histograma, tambiÃ©n indica que el $K$ Ã³ptimo es el 4.
+Según el histograma, tambiÃ©n indica que el $K$ óptimo es el 4.
 
-### Resumen de MÃ©todos
+### Resumen de Métodos
 
-En este resumen se encuentra el mÃ©todo de la Silueta, el MÃ©todo del Codo y Gap Statistic. Donde se obtuvieron los siguientes resultados:
+En este resumen se encuentra el mÃ©todo de la Silueta, el Método del Codo y Gap Statistic. Donde se obtuvieron los siguientes resultados:
 
-### MÃ©todo de la silueta.
+### Método de la silueta.
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 fviz_nbclust(scaled_data, kmeans, method = c("silhouette"))
 ```
 
-### MÃ©todo del Codo.
+### Método del Codo.
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 fviz_nbclust(scaled_data, kmeans, method = "wss") +
     geom_vline(xintercept = 4, linetype = 2)+
-  labs(subtitle = "MÃ©todo del Codo")
+  labs(subtitle = "Método del Codo")
 ```
 
 ###Gap Statistic
@@ -871,11 +974,11 @@ fviz_nbclust(scaled_data, kmeans, nstart = 25,  method = "gap_stat", nboot = 50)
   labs(subtitle = "Gap statistic method")
 ```
 
-### GeneraciÃ³n de clusterizaciÃ³n, segÃºn el k Ã³ptimo.
+### Generación de clusterización, según el k óptimo.
 
-SegÃºn los diferentes mÃ©todos $k = 4$, parecÃ­a ser muy Ã³ptimo para la generaciÃ³n de la clusterizaciÃ³n.
+Según los diferentes métodos $k = 4$, parecía ser muy óptimo para la generación de la clusterización.
 
-Luego, se muestran las primeras 10 observaciones de los barrios ordenados alfabÃ©ticamente, donde se observa el tipo de gravedad y el grupo al cual pertenecen.
+Luego, se muestran las primeras 10 observaciones de los barrios ordenados alfabéticamente, donde se observa el tipo de gravedad y el grupo al cual pertenecen.
 
 ```{r }
 kmm = kmeans(scaled_data, 4, nstart = 50, iter.max = 15 )
@@ -885,14 +988,14 @@ head(df_clust, 10)
 
 ```
 
-Con lo realizado anteriormente poseemos el agrupamiento segÃºn el k Ã³ptimo igual a 4, es decir, ahora los barrios pertenecen a un tipo de cluster (enumaredado del 1 al 4). Para el nombramiento de cada grupo se tomÃ³ como referencia el mapa de calor, quedando de la siguiente forma:
+Con lo realizado anteriormente poseemos el agrupamiento según el k óptimo igual a 4, es decir, ahora los barrios pertenecen a un tipo de cluster (enumerado del 1 al 4). Para el nombramiento de cada grupo se tomó como referencia el mapa de calor, quedando de la siguiente forma:
 
 - Grupo 1: Accidentalidad Moderada
 - Grupo 2: Accidentalidad Baja
 - Grupo 3: Accidentalidad Alta
 - Grupo 4: Accidentalidad Media-Alta
 
-La informaciÃ³n que se obtuvo de cada grupo es la siguiente:
+La información que se obtuvo de cada grupo es la siguiente:
 
 ## Grupo 1 - Accidentalidad Moderada
 
@@ -906,7 +1009,7 @@ sum(dfclust_clust1$Solo_danos)
 sum(dfclust_clust1$total)
 ```
 
-Para este grupo se observa que la cantidad total de accidentes son de 27895, la cantidad de accidentes con heridos es de 13145, la cantidad de accidentes con muertos 111 y la cantidad de accidentes con solo daÃ±os es de 14639.
+Para este grupo se observa que la cantidad total de accidentes son de 27895, la cantidad de accidentes con heridos es de 13145, la cantidad de accidentes con muertos 111 y la cantidad de accidentes con solo daños es de 14639.
 
 ## Grupo 2 - Accidentalidad Baja
 
@@ -920,7 +1023,7 @@ sum(dfclust_clust2$Solo_danos)
 sum(dfclust_clust2$total)
 ```
 
-Para este grupo se observa que la cantidad total de accidentes son de 28622, la cantidad de accidentes con heridos es de 17817, la cantidad de accidentes con muertos 106 y la cantidad de accidentes con solo daÃ±os es de 10699.
+Para este grupo se observa que la cantidad total de accidentes son de 28622, la cantidad de accidentes con heridos es de 17817, la cantidad de accidentes con muertos 106 y la cantidad de accidentes con solo daños es de 10699.
 
 ## Grupo 3 - Accidentalidad Alta
 
@@ -934,7 +1037,7 @@ sum(dfclust_clust3$Solo_danos)
 sum(dfclust_clust3$total)
 ```
 
-Para este grupo se observa que la cantidad total de accidentes son de 36247, la cantidad de accidentes con heridos es de 17147, la cantidad de accidentes con muertos 237 y la cantidad de accidentes con solo daÃ±os es de 18863.
+Para este grupo se observa que la cantidad total de accidentes son de 36247, la cantidad de accidentes con heridos es de 17147, la cantidad de accidentes con muertos 237 y la cantidad de accidentes con solo daños es de 18863.
 
 ## Grupo 4 - Accidentalidad Media-Alta
 
@@ -948,24 +1051,24 @@ sum(dfclust_clust4$Solo_danos)
 sum(dfclust_clust4$total)
 ```
 
-Para este grupo se observa que la cantidad total de accidentes son de 54841, la cantidad de accidentes con heridos es de 32887, la cantidad de accidentes con muertos 222 y la cantidad de accidentes con solo daÃ±os es de 21732.
+Para este grupo se observa que la cantidad total de accidentes son de 54841, la cantidad de accidentes con heridos es de 32887, la cantidad de accidentes con muertos 222 y la cantidad de accidentes con solo daños es de 21732.
 
-Finalmente, se realizÃ³ el mapa de agrupamiento, segÃºn lo mostrado anteriormente.
+Finalmente, se realizó el mapa de agrupamiento, según lo mostrado anteriormente.
 
-## Mapa de Accidentalidad en la ciudad de MedellÃ­n por Agrupamiento
+## Mapa de Accidentalidad en la ciudad de Medellín por Agrupamiento
 
 ```{r}
 #Se vuelve a utlizar catastro para este mapa
 
-#Se importÃ³ el archivo .xlsx basemapa
+#Se importó el archivo .xlsx basemapa
 
-basemapa <- read_excel("basemapa.xlsx")
+basemapa <- read_excel("C:/Users/Usuario/Downloads/basemapa.xlsx")
 base_mapa <- data_frame(basemapa)
 
 catastro$CODIGO <- as.numeric(as.character(catastro$CODIGO))
 base_mapa$Codigo <- as.numeric(as.character(base_mapa$Codigo))
 
-#Se utilizÃ³ 'inner join' de nuevo para unir dos bases y para asÃ­ luego generar mapa
+#Se utilizó 'inner join' de nuevo para unir dos bases y para así luego generar mapa
 
 mapa02 <- inner_join(catastro, base_mapa, by = c("CODIGO" = "Codigo"))
 
@@ -979,7 +1082,7 @@ mapa02$colores <- ifelse(mapa02$kmm.cluster == "1", "#00FF66",
 leaflet() %>% addPolygons(data = mapa02, opacity = 0.4, color = "#545454",weight = 1, fillColor = mapa02$colores,
                           fillOpacity = 0.4, label = ~NOMBRE_BAR,
                           highlightOptions = highlightOptions(color = "#262626", weight = 3, bringToFront = T, opacity = 1),
-                          popup = paste("Barrio: ", mapa02$NOMBRE_BAR, "<br>", "Grupo: ", mapa02$kmm.cluster, "<br>", "NÃºmero de Accidentes con heridos: ", mapa02$Con_heridos, "<br>", "NÃºmero de Accidentes con muertos: ", mapa02$Con_muertos, "<br>", "NÃºmero de Accidentes con solo daÃ±os: ", mapa02$Solo_danos)) %>%
+                          popup = paste("Barrio: ", mapa02$NOMBRE_BAR, "<br>", "Grupo: ", mapa02$kmm.cluster, "<br>", "Número de Accidentes con heridos: ", mapa02$Con_heridos, "<br>", "Número de Accidentes con muertos: ", mapa02$Con_muertos, "<br>", "Número de Accidentes con solo daños: ", mapa02$Solo_danos)) %>%
   addProviderTiles(providers$OpenStreetMap) %>%
   addLegend(position = "bottomright", colors = colorgrupos, labels = c("Grupo 1: Accidentalidad Moderada", "Grupo 2: Accidentalidad Baja", "Grupo 3: Accidentalidad Alta", "Grupo 4: Accidentalidad Media-Alta"))
 

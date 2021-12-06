@@ -71,6 +71,15 @@ server <- function(input, output){
       addProviderTiles(providers$OpenStreetMap) %>%
       addLegend(position = "bottomright", pal = mypal, values = mapa$accidentes, title = "Accidentes", opacity = 0.6)
     })
+  
+  
+  
+  
+  
+  
+  
+  
+  
   output$Agrupamiento <- renderLeaflet({
       
     basemapa <- read_excel("basemapa.xlsx")
