@@ -3,6 +3,7 @@ library(shinythemes)
 library(rsconnect)
 library(leaflet)
 library(sf)
+library(plotly)
 
 tipo_accidente <- c("Todos", "Atropello", "Caida de Ocupante", "Choque", "Incendio", 
                 "Volcamiento", "Otro")
@@ -28,7 +29,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                              ),
                              column(8,
                                     h1("Video explicativo web app"),
-                                    HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?start=46" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+                                    HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/uLC_pkZ-x7o" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
                                     # responsive HTML('<pre><div class="video-responsive"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?start=46" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><pre>'),
                              )
                            ),
