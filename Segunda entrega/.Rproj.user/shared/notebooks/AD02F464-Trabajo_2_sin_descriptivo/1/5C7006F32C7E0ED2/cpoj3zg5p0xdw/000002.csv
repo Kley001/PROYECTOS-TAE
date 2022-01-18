@@ -1,0 +1,6 @@
+"0","plot_ly(data = descriptivo, x = ~FECHA, y = ~UNIDADES,"
+"0","        type = ""scatter"", mode = ""lines"", split = ~YEAR,"
+"0","        line = list(width = 1)) %>%"
+"0","  layout(title = 'Registros de vehiculos diarios en el RUNT de 2012-2017',"
+"0","        xaxis = list(title = ""Año""),"
+"0","        yaxis = list(title = ""Número de vehiculos""))"

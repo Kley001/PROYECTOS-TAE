@@ -1,0 +1,4 @@
+"0","tail(datos_primer_archivo_plano, 10)"
+"2","Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'x' in selecting a method for function 'tail': object 'datos_primer_archivo_plano' not found
+"

@@ -1,0 +1,3 @@
+"0","totals2 <- descriptivo %>%"
+"0","  group_by(dia_habil) %>%"
+"0","  mutate(total=sum(UNIDADES))"

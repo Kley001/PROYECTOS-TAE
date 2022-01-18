@@ -1,0 +1,4 @@
+"0","#BASE 1"
+"0","save(datos_1, file = ""datos.RData"") #rgdata"
+"2","Error in save(datos_1, file = ""datos.RData"") : object 'datos_1' not found
+"

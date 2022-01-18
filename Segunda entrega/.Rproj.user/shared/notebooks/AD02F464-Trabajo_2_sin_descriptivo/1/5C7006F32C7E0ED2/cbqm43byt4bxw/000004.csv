@@ -1,0 +1,8 @@
+"0","datos_17 <- subset(diario_20_02, (YEAR == '2018'))"
+"0","sem2018 <- datos_17[c(1:181),]"
+"0","dat04 <- sem2018[,-2]"
+"0","dat05 <- dat04[,-2]"
+"0","dat06 <- dat05[,-2]"
+"0","dat07 <- dat06[,-2]"
+"0","datos_segundo_archivo_plano <- dat07[,-2]"
+"0","head(datos_segundo_archivo_plano, 10)"

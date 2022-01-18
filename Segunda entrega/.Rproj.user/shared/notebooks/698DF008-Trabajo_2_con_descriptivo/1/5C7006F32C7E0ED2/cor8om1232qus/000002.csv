@@ -1,0 +1,2 @@
+"0","library(ggpubr)"
+"0","descriptivo <- read.csv(""datos.csv"")"

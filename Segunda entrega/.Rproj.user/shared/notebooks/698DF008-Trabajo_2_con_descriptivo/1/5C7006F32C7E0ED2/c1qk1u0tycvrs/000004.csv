@@ -1,0 +1,4 @@
+"0","descriptivo$DIA_SEMANA <- as.factor(descriptivo$DIA_SEMANA)"
+"0","descriptivo$MES <- as.factor(descriptivo$MES)"
+"0","descriptivo$DIA <- as.factor(descriptivo$DIA)"
+"0","descriptivo$YEAR <- as.factor(descriptivo$YEAR)"

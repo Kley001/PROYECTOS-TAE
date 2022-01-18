@@ -1,0 +1,7 @@
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""a_nuevo"",""AÑO NUEVO"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""a_viejo"",""AÑO VIEJO"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""madres"",""DIA DE LAS MADRES"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""brujas"",""HALLOWEEN"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""sem_santa"",""SEMANA SANTA"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""festivo"",""FESTIVO"", solo_tipo_festividad$FESTIVIDAD)"
+"0","solo_tipo_festividad$FESTIVIDAD <- gsub(""navidad"",""NAVIDAD"", solo_tipo_festividad$FESTIVIDAD)"

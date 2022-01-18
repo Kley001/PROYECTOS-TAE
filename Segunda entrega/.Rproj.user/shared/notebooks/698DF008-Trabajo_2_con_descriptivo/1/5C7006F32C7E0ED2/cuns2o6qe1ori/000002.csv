@@ -1,0 +1,1 @@
+"0","descriptivo$DIA_SEMANA <- ordered(descriptivo$DIA_SEMANA, levels = c(""lunes"",""martes"",""miercoles"",""jueves"",""viernes"",""sabado"",""domingo""))"

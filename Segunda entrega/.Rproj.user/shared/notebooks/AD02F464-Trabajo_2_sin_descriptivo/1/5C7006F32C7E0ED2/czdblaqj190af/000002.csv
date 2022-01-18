@@ -1,0 +1,3 @@
+"0","totals <- solo_tipo_festividad %>%"
+"0","  group_by(FESTIVIDAD) %>%"
+"0","  mutate(total=sum(UNIDADES))"

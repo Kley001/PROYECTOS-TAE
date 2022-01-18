@@ -1,0 +1,3 @@
+"0","datos_16 <- subset(diario_20_02, (YEAR != '2018'))"
+"2","Error in eval(e, x, parent.frame()) : object 'YEAR' not found
+"

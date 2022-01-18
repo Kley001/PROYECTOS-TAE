@@ -1,0 +1,4 @@
+"0","totals5 <- descriptivo %>%"
+"0","  group_by(DIA_SEMANA) %>%"
+"0","  mutate(total=sum(UNIDADES))"
+"0","totals5"

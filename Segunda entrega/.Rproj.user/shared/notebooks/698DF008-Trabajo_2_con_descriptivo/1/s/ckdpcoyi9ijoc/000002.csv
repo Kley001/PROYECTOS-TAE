@@ -1,0 +1,340 @@
+"0","#Librerias"
+"0","library(dummies);library(stringr);library(readxl);library(sf)"
+"2","dummies-1.5.6 provided by Decision Patterns
+
+"
+"2","Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE
+"
+"0","library(dplyr);library(lubridate);library(ggplot2);library(GGally)"
+"2","
+Attaching package: ‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"2","
+Attaching package: ‘lubridate’
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+"
+"2","Registered S3 method overwritten by 'GGally':
+  method from   
+  +.gg   ggplot2
+"
+"0","library(car);library(MLmetrics);library(wordcloud);library(gplots)"
+"2","Loading required package: carData
+"
+"2","
+Attaching package: ‘car’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    recode
+
+"
+"2","
+Attaching package: ‘MLmetrics’
+
+"
+"2","The following object is masked from ‘package:base’:
+
+    Recall
+
+"
+"2","Loading required package: RColorBrewer
+"
+"2","
+Attaching package: ‘gplots’
+
+"
+"2","The following object is masked from ‘package:wordcloud’:
+
+    textplot
+
+"
+"2","The following object is masked from ‘package:stats’:
+
+    lowess
+
+"
+"0","library(R.utils);library(tm);library(DescTools);library(raster)"
+"2","Loading required package: R.oo
+"
+"2","Loading required package: R.methodsS3
+"
+"2","R.methodsS3 v1.8.1 (2020-08-26 16:20:06 UTC) successfully loaded. See ?R.methodsS3 for help.
+"
+"2","R.oo v1.24.0 (2020-08-26 16:11:58 UTC) successfully loaded. See ?R.oo for help.
+"
+"2","
+Attaching package: ‘R.oo’
+
+"
+"2","The following object is masked from ‘package:R.methodsS3’:
+
+    throw
+
+"
+"2","The following objects are masked from ‘package:methods’:
+
+    getClasses, getMethods
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    attach, detach, load, save
+
+"
+"2","R.utils v2.11.0 (2021-09-26 08:30:02 UTC) successfully loaded. See ?R.utils for help.
+"
+"2","
+Attaching package: ‘R.utils’
+
+"
+"2","The following object is masked from ‘package:GGally’:
+
+    wrap
+
+"
+"2","The following object is masked from ‘package:utils’:
+
+    timestamp
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    cat, commandArgs, getOption, inherits, isOpen, nullfile, parse, warnings
+
+"
+"2","Loading required package: NLP
+"
+"2","
+Attaching package: ‘NLP’
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    annotate
+
+"
+"2","Registered S3 method overwritten by 'data.table':
+  method           from
+  print.data.table     
+"
+"2","Registered S3 method overwritten by 'DescTools':
+  method         from  
+  reorder.factor gplots
+"
+"2","
+Attaching package: ‘DescTools’
+
+"
+"2","The following object is masked from ‘package:gplots’:
+
+    reorder.factor
+
+"
+"2","The following objects are masked from ‘package:MLmetrics’:
+
+    AUC, Gini, MAE, MAPE, MSE, RMSE
+
+"
+"2","The following object is masked from ‘package:car’:
+
+    Recode
+
+"
+"2","Loading required package: sp
+"
+"2","
+Attaching package: ‘raster’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    select
+
+"
+"0","library(mclust);library(rgdal);library(raster);library(geosphere)"
+"2","    __  ___________    __  _____________
+   /  |/  / ____/ /   / / / / ___/_  __/
+  / /|_/ / /   / /   / / / /\__ \ / /   
+ / /  / / /___/ /___/ /_/ /___/ // /    
+/_/  /_/\____/_____/\____//____//_/    version 5.4.9
+Type 'citation(""mclust"")' for citing this R package in publications.
+"
+"2","
+Attaching package: ‘mclust’
+
+"
+"2","The following object is masked from ‘package:DescTools’:
+
+    BrierScore
+
+"
+"2","Please note that rgdal will be retired by the end of 2023,
+plan transition to sf/stars/terra functions using GDAL and PROJ
+at your earliest convenience.
+
+rgdal: version: 1.5-27, (SVN revision 1148)
+Geospatial Data Abstraction Library extensions to R successfully loaded
+Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
+Path to GDAL shared files: C:/Users/FAMILIA/Documents/R/win-library/4.1/rgdal/gdal
+GDAL binary built with GEOS: TRUE 
+Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
+Path to PROJ shared files: C:/Users/FAMILIA/Documents/R/win-library/4.1/rgdal/proj
+PROJ CDN enabled: FALSE
+Linking to sp version:1.4-6
+To mute warnings of possible GDAL/OSR exportToProj4() degradation,
+use options(""rgdal_show_exportToProj4_warnings""=""none"") before loading sp or rgdal.
+Overwritten PROJ_LIB was C:/Users/FAMILIA/Documents/R/win-library/4.1/rgdal/proj
+"
+"2","
+Attaching package: ‘rgdal’
+
+"
+"2","The following object is masked from ‘package:R.oo’:
+
+    getDescription
+
+"
+"0","library(NbClust);library(factoextra);library(vegan);library(qpcR)"
+"2","Welcome! Want to learn more? See two factoextra-related books at https://goo.gl/ve3WBa
+"
+"2","Loading required package: permute
+"
+"2","
+Attaching package: ‘permute’
+
+"
+"2","The following object is masked from ‘package:R.oo’:
+
+    check
+
+"
+"2","Loading required package: lattice
+"
+"2","This is vegan 2.5-7
+"
+"2","Loading required package: MASS
+"
+"2","
+Attaching package: ‘MASS’
+
+"
+"2","The following objects are masked from ‘package:raster’:
+
+    area, select
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    select
+
+"
+"2","Loading required package: minpack.lm
+"
+"2","Loading required package: rgl
+"
+"2","Registered S3 method overwritten by 'htmlwidgets':
+  method           from         
+  print.htmlwidget tools:rstudio
+"
+"2","Loading required package: robustbase
+"
+"2","Loading required package: Matrix
+"
+"2","
+Attaching package: ‘qpcR’
+
+"
+"2","The following object is masked from ‘package:DescTools’:
+
+    RMSE
+
+"
+"2","The following object is masked from ‘package:MLmetrics’:
+
+    RMSE
+
+"
+"0","library(leaflet);library(plotly);library(stringi);library(plyr)"
+"2","
+Attaching package: ‘plotly’
+
+"
+"2","The following object is masked from ‘package:MASS’:
+
+    select
+
+"
+"2","The following object is masked from ‘package:raster’:
+
+    select
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    last_plot
+
+"
+"2","The following object is masked from ‘package:stats’:
+
+    filter
+
+"
+"2","The following object is masked from ‘package:graphics’:
+
+    layout
+
+"
+"2","-------------------------------------------------------------------------------------------
+"
+"2","You have loaded plyr after dplyr - this is likely to cause problems.
+If you need functions from both plyr and dplyr, please load plyr first, then dplyr:
+library(plyr); library(dplyr)
+"
+"2","-------------------------------------------------------------------------------------------
+"
+"2","
+Attaching package: ‘plyr’
+
+"
+"2","The following objects are masked from ‘package:plotly’:
+
+    arrange, mutate, rename, summarise
+
+"
+"2","The following objects are masked from ‘package:dplyr’:
+
+    arrange, count, desc, failwith, id, mutate, rename, summarise, summarize
+
+"
+"0","library(ggpubr)"
+"2","
+Attaching package: ‘ggpubr’
+
+"
+"2","The following object is masked from ‘package:plyr’:
+
+    mutate
+
+"
+"2","The following object is masked from ‘package:raster’:
+
+    rotate
+
+"

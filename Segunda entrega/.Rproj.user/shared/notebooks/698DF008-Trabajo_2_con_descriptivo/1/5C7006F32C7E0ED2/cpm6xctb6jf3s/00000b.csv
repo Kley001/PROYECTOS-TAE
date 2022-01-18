@@ -1,0 +1,8 @@
+"0","ggplot(descriptivo, aes(fill = DIA_SEMANA, x =  DIA_SEMANA, y = UNIDADES)) +"
+"0","  geom_bar(stat = ""identity"") +"
+"0","  geom_text(data = totals5, aes( y = total, label = total), vjust = -0.5) +"
+"0","  scale_y_continuous(breaks = seq( 0,450000,50000)) +"
+"0","  xlab(""Días"") + "
+"0","  ylab(""Numero de vehiculos"") + "
+"0","  ggtitle(""Registro de vehiculos por día de la semana"") +"
+"0","  theme(legend.position = ""none"")"

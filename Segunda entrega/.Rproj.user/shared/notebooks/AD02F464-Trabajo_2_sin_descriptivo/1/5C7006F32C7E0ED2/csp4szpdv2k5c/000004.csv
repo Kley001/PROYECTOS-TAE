@@ -1,0 +1,4 @@
+"0","#BASE 1"
+"0","save(datos, file = ""datos.RData"") #rgdata"
+"0","write.csv(datos, ""datos.csv"")        #csv"
+"0",""

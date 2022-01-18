@@ -1,0 +1,4 @@
+"0",""
+"0","datos <- read_excel(""registros_autos_entrenamiento.xlsx"") #cargar datos"
+"0",""
+"0","head(datos, n=5)"

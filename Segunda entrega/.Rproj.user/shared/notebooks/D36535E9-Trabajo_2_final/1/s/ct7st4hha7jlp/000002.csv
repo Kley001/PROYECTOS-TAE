@@ -1,0 +1,3 @@
+"0","los_datos <- read.csv(""C:/Users/Usuario/Downloads/datos_1.csv"", sep="";"", encoding=""UTF-8"")"
+"2","Error in file(file, ""rt"") : cannot open the connection
+"

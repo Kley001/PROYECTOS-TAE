@@ -1,0 +1,3 @@
+"0","totals3 <- descriptivo %>%"
+"0","  group_by(YEAR) %>%"
+"0","  mutate(total=sum(UNIDADES))"

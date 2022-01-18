@@ -1,0 +1,2 @@
+"0","descriptivo$dia_habil <- ifelse(descriptivo$FESTIVIDAD == ""dia_habil"", ""SI"", ""NO"")"
+"0","descriptivo$dia_habil <- as.factor(descriptivo$dia_habil)"

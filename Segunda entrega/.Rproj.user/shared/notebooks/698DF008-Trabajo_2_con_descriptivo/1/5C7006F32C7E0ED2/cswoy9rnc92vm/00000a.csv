@@ -1,0 +1,8 @@
+"0","#Datos para el modelo 2012-2016"
+"0",""
+"0","losdatos <- los_datos[c(1:1827),]"
+"0",""
+"0","datos_lm2 <- losdatos %>% group_by(FECHA, YEAR, DIA, MES, DIA_SEMANA, FESTIVIDAD)"
+"0",""
+"0","lm2 <- glm(UNIDADES ~ FECHA+YEAR+DIA+MES+DIA_SEMANA+FESTIVIDAD, family = ""poisson"", data = datos_lm2)"
+"0",""
