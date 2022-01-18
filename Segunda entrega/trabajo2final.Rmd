@@ -26,24 +26,19 @@ library(R.utils);library(tm);library(DescTools);library(raster)
 library(mclust);library(rgdal);library(raster);library(geosphere)
 library(NbClust);library(factoextra);library(vegan);library(qpcR)
 library(leaflet);library(plotly);library(stringi);library(plyr)
-library(ggpubr)
+
 ```
 
 
 ## 1. Introducción
 
-<div style="text-align: justify"> En Colombia, el Registro Único Nacional de Tránsito [(RUNT)](https://serviciosdetransito.com/index.php/noticias/139-que-es-y-como-funciona-el-runt), funciona como una gran base de datos centralizada en la que se almacena información sobre todos los vehículos del país, los conductores, los seguros de estos, las infracciones entre muchos más. El presente reporte asume el ejercicio de crear un modelo estadístico para predecir el número de vehículos registrados diariamente en el RUNT durante el año 2018.<div/>
-
-
-
+En Colombia, el Registro Único Nacional de Tránsito [(RUNT)](https://serviciosdetransito.com/index.php/noticias/139-que-es-y-como-funciona-el-runt), funciona como una gran base de datos centralizada en la que se almacena información sobre todos los vehículos del país, los conductores, los seguros de estos, las infracciones entre muchos más. El presente reporte asume el ejercicio de crear un modelo estadístico para predecir el número de vehículos registrados diariamente en el RUNT durante el año 2018.
 
 ## 2. Datos 
 
-<div style="text-align: justify">
+
 La base de datos inicial, registro_autos_entrenamiento, en formato .XLSX, contiene los registros diarios de autos en el RUNT, desde las fechas 1/01/2012 hasta 31/12/2017. Se usaron los software Excel y R para el procesamiento de la base de datos.
 Inicialmente, la base de datos contiene 2192 observaciones y 2 variables. Las variables `Fecha` y `Unidades`.  Una vista previa de las primeras observaciones de la base de datos es la siguiente:
-<div/>
-
 
 
 ```{r message=FALSE, warning=FALSE , echo=T}
@@ -55,23 +50,33 @@ head(datos, n=5)
 
 ```
 
-
 Con el objetivo de plantear un modelo más interesante, se propone la creación de cinco nuevas variables que permitirán desarrollar un modelo predictivo que arroje más información en sus resultados teniendo en cuenta el año, mes, días del mes, días de la semana y si el día tuvo o no alguna festividad. Las variables creadas son:
 
 `YEAR`: año del registro. 
-`DIA`: día del mes del registro.  
-`MES`: mes del registro.
-`DIA_SEMANA`: día del registro (lunes a domingo)
-`FESTIVIDAD`: indica si el registro se realizó en alguna de las siguientes fechas especiales:
-*a_nuevo: 1 de enero de cada año.
-*día_habil: día en donde no es festivo no hay festividades.
-*festivo: día festivo.
-*sem_santa: día de semana santa, de sábado a domingo.
-*madres: día de las madres.
-*brujas: día de las brujas, 31 de octubre.
-*navidad: 25 de diciembre.
-*a_viejo: 31 de diciembre.
 
+`DIA`: día del mes del registro.
+
+`MES`: mes del registro.
+
+`DIA_SEMANA`: día del registro (lunes a domingo).
+
+`FESTIVIDAD`: indica si el registro se realizó en alguna de las siguientes fechas especiales:
+
+*a_nuevo: 1 de enero de cada año.
+
+*día_habil: día en donde no es festivo no hay festividades.
+
+*festivo: día festivo.
+
+*sem_santa: día de semana santa, de sábado a domingo.
+
+*madres: día de las madres.
+
+*brujas: día de las brujas, 31 de octubre.
+
+*navidad: 25 de diciembre.
+
+*a_viejo: 31 de diciembre.
 
 ```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
 
@@ -112,15 +117,9 @@ datos <- plyr::rename(datos,  c("Fecha"="FECHA","Unidades"="UNIDADES","year"="YE
 
 datos$DIA_SEMANA <- str_to_lower(datos$DIA_SEMANA)
 
-
-
 ```
 
-
-
-
 Todas las nuevas variables exceptuando `FESTIVIDAD` se obtienen de la variable `Fecha`. En el caso de la variable `FESTIVIDAD`, se obtiene a través una base de datos externa que se adiciona a la base de análisis original y abarca los días feriados en Colombia desde 2012 hasta 2018.  
-
 
 ```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
 
@@ -152,19 +151,16 @@ summary(datos2$FESTIVIDAD)
 
 ```
 
-
-
 Para efectos practicos en la sección de modelo predictivo, se exportan dos bases de datos:
 
 **La primera**, con 7 variables y 2192 observaciones que van desde el año 2012 hasta el año 2017.
 
 ```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
 #BASE 1
-save(datos_1, file = "datos.RData") #rgdata
-write.csv(datos_1, "datos.csv")        #csv
+save(datos2, file = "datos.RData") #rgdata
+write.csv(datos2, "datos.csv")        #csv
 
 ```
-
 
 **La segunda**, con 6 variables y 2575 observaciones que van desde el año 2012 hasta el año 2018. Esta base de datos no contiene la variable `UNIDADES` debido a que se borró intencionalmente para luego rellenarla con la predicción del modelo.
 
@@ -175,15 +171,15 @@ write.csv(datos_1, "datos.csv")        #csv
 ```
 
 
-
-
 ## 3. Análisis descriptivo
 
+
 ```{r, include=FALSE}
-descriptivo <- read.csv("datos.csv")
+library(ggpubr)
+descriptivo <- datos2
 ```
 
-```{r, echo=FALSE}
+```{r}
 plot_ly(data = descriptivo, x = ~FECHA, y = ~UNIDADES,
         type = "scatter", mode = "lines", split = ~YEAR,
         line = list(width = 1)) %>%
@@ -196,16 +192,22 @@ Aprecia que gradualmente van disminuyendo los registros diarios, se registran ca
 Además, en esta grafica se puede apreciar una gran cantidad de días en los cuales no se registran vehículos, en los cuales resaltar cada 1 de enero y 25 de diciembre.
 
 ```{r, include=FALSE}
-descriptivo$DIA_SEMANA <- ordered(descriptivo$DIA_SEMANA, levels = c("lunes","martes","miercoles","jueves","viernes","sabado","domingo"))
+descriptivo$DIA_SEMANA <- as.factor(descriptivo$DIA_SEMANA)
+descriptivo$MES <- as.factor(descriptivo$MES)
+descriptivo$DIA <- as.factor(descriptivo$DIA)
+descriptivo$YEAR <- as.factor(descriptivo$YEAR)
 ```
 
-```{r, include=FALSE}
+
+```{r}
+descriptivo$DIA_SEMANA <- ordered(descriptivo$DIA_SEMANA, levels = c("lunes","martes","miercoles","jueves","viernes","sabado","domingo"))
+
+
 totals5 <- descriptivo %>%
   group_by(DIA_SEMANA) %>%
-  summarise(total=sum(UNIDADES))
-```
+  mutate(total=sum(UNIDADES))
 
-```{r, echo=FALSE}
+
 ggplot(descriptivo, aes(fill = DIA_SEMANA, x =  DIA_SEMANA, y = UNIDADES)) +
   geom_bar(stat = "identity") +
   geom_text(data = totals5, aes( y = total, label = total), vjust = -0.5) +
@@ -218,17 +220,17 @@ ggplot(descriptivo, aes(fill = DIA_SEMANA, x =  DIA_SEMANA, y = UNIDADES)) +
 
 Podemos apreciar que de miércoles a viernes se hace la mayoría de los registros, con el viernes como el día de la semana con mayor cantidad de vehículos registrados, se puede observar como hay menos registros en los fines de semana en comparación a los días de la semana, ademas de que el domingo es el día con menor cantidad de registros de vehículos.
 
-```{r, include=FALSE}
+```{r}
 totals4 <- descriptivo %>%
   group_by(MES) %>%
-  summarise(total=sum(UNIDADES))
-```
+  mutate(total=sum(UNIDADES))
 
-```{r, echo=FALSE}
+
 ggplot(descriptivo, aes(fill = MES, x = as.factor(MES), y = UNIDADES)) + 
   geom_bar(stat = "identity") +
   geom_text(data = totals4, aes( y = total, label = total), vjust = -0.5) +
   scale_y_continuous(breaks = seq( 0,200000,25000)) +
+  scale_fill_viridis_d( option = "G") +
   xlab("Mes") +
   ylab("Numero de vehiculos") +
   ggtitle("Registro de vehiculos por mes")+
@@ -238,20 +240,17 @@ ggplot(descriptivo, aes(fill = MES, x = as.factor(MES), y = UNIDADES)) +
 Diciembre es el mes con mayor cantidad de registros de vehículos y enero el mes con menor cantidad de registros, ignorando estos dos datos y solo tomando del mes febrero al mes de noviembre los registros de vehículos en el RUNT están entre 130000 y 150000, variando por unos cuantos miles de vehículos 
 
 
-```{r, include=FALSE}
+```{r}
 totals3 <- descriptivo %>%
   group_by(YEAR) %>%
-  summarise(total=sum(UNIDADES))
-```
+  mutate(total=sum(UNIDADES))
 
 
-
-
-```{r, echo=FALSE}
 ggplot(descriptivo, aes(fill = YEAR, x = as.factor(YEAR), y = UNIDADES)) + 
   geom_bar(stat = "identity") +
   geom_text(data = totals3, aes( y = total, label = total), vjust = -0.5) +
   scale_y_continuous(breaks = seq( 0,400000,25000)) +
+  scale_fill_viridis_d( option = "E") +
   xlab("Año") +
   ylab("Numero de vehiculos") +
   ggtitle("Registro de vehiculos  por año")+
@@ -268,23 +267,6 @@ descriptivo$dia_habil <- as.factor(descriptivo$dia_habil)
 ```
 
 ```{r, include=FALSE}
-totals2 <- descriptivo %>%
-  group_by(dia_habil) %>%
-  summarise(total=sum(UNIDADES))
-```
-
-```{r, echo=FALSE}
-gfes1 <- ggplot(descriptivo, aes(fill = dia_habil, x = dia_habil, y = UNIDADES)) +
-  geom_bar(stat = "identity") +
-  geom_text(data = totals2, aes(x = dia_habil, y = total, label = total), vjust = -0.5) +
-  scale_y_continuous(breaks = seq( 0,2250000,250000)) +
-  xlab("dia habil") +
-  ylab("Numero de vehiculos") +
-  ggtitle("registros de dias habiles y no habiles")+
-  theme(legend.position = "none")
-```
-
-```{r, include=FALSE}
 NO_fes <- descriptivo %>%
   filter(FESTIVIDAD == "dia_habil")
 NO_fes
@@ -296,7 +278,7 @@ solo_tipo_festividad <- descriptivo %>%
 summary(solo_tipo_festividad)
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 solo_tipo_festividad$FESTIVIDAD <- gsub("a_nuevo","AÑO NUEVO", solo_tipo_festividad$FESTIVIDAD)
 solo_tipo_festividad$FESTIVIDAD <- gsub("a_viejo","AÑO VIEJO", solo_tipo_festividad$FESTIVIDAD)
 solo_tipo_festividad$FESTIVIDAD <- gsub("madres","DIA DE LAS MADRES", solo_tipo_festividad$FESTIVIDAD)
@@ -306,13 +288,25 @@ solo_tipo_festividad$FESTIVIDAD <- gsub("festivo","FESTIVO", solo_tipo_festivida
 solo_tipo_festividad$FESTIVIDAD <- gsub("navidad","NAVIDAD", solo_tipo_festividad$FESTIVIDAD)
 ```
 
-```{r, include=FALSE}
+```{r}
+totals2 <- descriptivo %>%
+  group_by(dia_habil) %>%
+  mutate(total=sum(UNIDADES))
+
+gfes1 <- ggplot(descriptivo, aes(fill = dia_habil, x = dia_habil, y = UNIDADES)) +
+  geom_bar(stat = "identity") +
+  geom_text(data = totals2, aes(x = dia_habil, y = total, label = total), vjust = -0.5) +
+  scale_y_continuous(breaks = seq( 0,2250000,250000)) +
+  xlab("dia habil") +
+  ylab("Numero de vehiculos") +
+  ggtitle("registros de dias habiles y no habiles")+
+  theme(legend.position = "none")
+
 totals <- solo_tipo_festividad %>%
   group_by(FESTIVIDAD) %>%
-  summarise(total=sum(UNIDADES))
-```
+  mutate(total=sum(UNIDADES))
 
-```{r, echo=FALSE}
+
 gfes2 <- ggplot(solo_tipo_festividad, aes(fill = FESTIVIDAD, x = reorder(FESTIVIDAD,+UNIDADES), y = UNIDADES)) +
   geom_bar(stat = "identity") +
   scale_fill_viridis_d( option = "D") +
@@ -322,9 +316,8 @@ gfes2 <- ggplot(solo_tipo_festividad, aes(fill = FESTIVIDAD, x = reorder(FESTIVI
   scale_y_continuous(breaks = seq( 0,30000,2500)) +
   ggtitle("Registros en las festividades") +
   theme(axis.text.x = element_text(angle = 90, hjust = 0), legend.position = "none")
-```
 
-```{r, fig.height=6, echo=FALSE}
+
 ggarrange(gfes1,gfes2)
 ```
 
@@ -336,15 +329,13 @@ Siendo muchos menos los días festivos comunes que los días celebración de la 
 
 
 
-
-
 ## 4. Modelo Predictivo
 
 
 Se lleva a cabo un Modelo lineal generalizado con la familia de distribución Poisson, donde la variable respuesta (variable dependiente) sería "UNIDADES", y las variables explicativas (variables independientes) son: FECHA, YEAR, DIA, MES, DIA_SEMANA, y FESTIVIDAD.
 
 ```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
-los_datos <- read.csv("C:/Users/Usuario/Downloads/datos_1.csv", sep=";", encoding="UTF-8")
+los_datos <- read.csv("datos_1.csv", sep=";", encoding="UTF-8")
 
 los_datos$FECHA <- as.Date(los_datos$FECHA, format="%d/%m/%Y")
 
@@ -378,7 +369,7 @@ lm2 <- glm(UNIDADES ~ FECHA+YEAR+DIA+MES+DIA_SEMANA+FESTIVIDAD, family = "poisso
 Se procede a hacer lectura de la base de datos en donde se almacenarán todas las predicciones, según el modelo anterior.
 
 ```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
-Base_prediccion <- read.csv("C:/Users/Usuario/Downloads/prediccion_t022_1.csv", sep = ";", encoding = "UTF-8")
+Base_prediccion <- read.csv("prediccion_t022_1.csv", sep = ";", encoding = "UTF-8")
 
 Base_prediccion$FECHA <- as.Date(Base_prediccion$FECHA, format="%d/%m/%Y")
 
@@ -405,7 +396,7 @@ prediccion_diaria<- Base_prediccion %>%
 
 diario_20_02 <- prediccion_diaria %>%
   group_by(FECHA, YEAR, DIA, MES, DIA_SEMANA, FESTIVIDAD) %>%
-  summarise(NRO_TOTAL_VEHICULOS=Nro_Vehiculos)
+  mutate(NRO_TOTAL_VEHICULOS=Nro_Vehiculos)
 
 diario_20_02$NRO_TOTAL_VEHICULOS <- as.integer(diario_20_02$NRO_TOTAL_VEHICULOS)
 
@@ -501,7 +492,14 @@ tail(datos_segundo_archivo_plano, 10)
 write.csv(datos_segundo_archivo_plano, "segundo_archivo_plano.csv")
 ```
 
-**Nota:** Los dos archivos planos en formato .csv se pueden observar en el repositorio de Github.
+**Nota:** Los dos archivos planos en formato .csv se pueden observar en el repositorio de Github:
+
+https://github.com/daatoroag/PROYECTOS-TAE/tree/main/Segunda%20entrega
+
+## Refererncias
+
+https://community.rstudio.com/t/sum-value-at-top-of-stacked-bar-chart/73658
+
 
 
 
