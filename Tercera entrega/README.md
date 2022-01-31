@@ -1,4 +1,4 @@
-## Desarrollo de proyectos de tecnicas de aprendizaje estadistico
+## TAE Trabajo 3: Clasificación de imágenes
 
 ### Integrantes 
 
