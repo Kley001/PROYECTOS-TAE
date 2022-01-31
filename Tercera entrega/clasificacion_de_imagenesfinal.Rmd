@@ -1,0 +1,672 @@
+---
+title: "Clasificación de imágenes a través de la identificación de rostros con lentes o sin lentes"
+author: "Jesus David Santos Montes, Kleider Stiven Vásquez Gómez, Daniel Andrés Toro Aguirre, Jelssin Donnovan Robledo Mena, Juan Esteban Carvajal Molina."
+date: "31/01/2022"
+output: 
+  html_document:
+    theme: spacelab
+    code_folding: hide
+    code_download: yes
+    df_print: paged
+    toc: true
+    toc_float: 
+      colapse: false
+      
+      
+--- 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## 1. Introducción
+
+La clasificación de imágenes es objeto de estudio y aplicación en múltiples áreas del conocimiento. En el caso más simple, se busca tomar una decisión con base en la información que contiene una imagen [1]. En este reporte se aborda el ejercicio de clasificar imágenes de sujetos con lentes/gafas utilizando técnicas de aprendizaje estadístico supervisadas.
+
+
+## 2. Datos
+
+El conjunto de datos se obtuvo del curso T81-855: [Applications of Deep Learning](https://sites.wustl.edu/jeffheaton/t81-558/) dirigido por el profesor [Jeff Heaton](https://github.com/jeffheaton), en la Washington University in St. Louis (WUSTL). Los datos, están alojados en un reto de [Kaggle](https://www.kaggle.com/jeffheaton/glasses-or-no-glasses) del año 2020, en donde se encuentran 5000 imágenes producidas artificialmente a través de una red neuronal adversa generativa (GAN). Se pueden encontrar personas con lentes y personas sin lentes. Dentro de las imágenes de personas con lentes se hallan 6 tipos de lentes. La figura 1 presenta una muestra de los tipos de lentes que se pueden encontrar en el conjunto de datos:
+
+
+![Figura 1. Tipos de lentes](https://data.heatonresearch.com/images/wustl/kaggle/kaggle-faces-glasses-2.png)
+
+El conjunto de datos es revisado y se eliminan imágenes que se consideran podrían pertubar el aprendizaje del modelo, en éstas se hallaban personas con lentes a medio construir, dos rostros en una misma imagen y otras con detalles similares. Finalmente el conjunto de datos queda con 454 imágenes de sujetos con lentes y 618 de sujetos sin lentes. También, se eligió esta cantidad de datos por la capacidad y velocidad de procesamiento que se tiene al alcance.
+
+
+### 2.1. Procesamiento 
+
+Las imágenes se pueden vectorizar. Es decir, vista la imagen como una matriz, sus columnas se ubican consecutivamente una debajo de la otra hasta obtener un vector. Luego, los vectores serán las filas de una matriz de datos con la información de intensidades para cada píxel en las respectivas imágenes.
+
+Para describir una forma de comparar los vectores, usaremos una muestra de 6 sujetos (3 con gafas y 3 sin gafas). Las figuras serán analizadas con el paquete [EBImage](https://bioconductor.org/packages/release/bioc/html/EBImage.html)
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
+#instalar paquetes y librerías necesarias
+
+#if (!require("BiocManager", quietly = TRUE))
+#  install.packages("BiocManager")
+
+#BiocManager::install("EBImage")
+
+#install.packages("pls")
+#install.packages("pixmap")
+#install.packages("yardstick")
+
+
+library(EBImage)
+library(pls)
+library(tidyverse)
+library(dplyr)
+library(pixmap)
+library(data.table)
+library(readxl)
+library(yardstick)
+
+
+```
+
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
+#Entrar al directorio base
+
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Modelos")
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Modelos/")
+
+
+#Abrir las imágenes del modelo
+list.files()->lista
+
+#Ver las figuras citadas
+
+```
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
+#Luego, abriremos una de esas figuras
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Modelos")
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Modelos/")
+
+imagename <-lista[1]
+img = readImage(imagename)
+imagename <-lista[2]
+img2 = readImage(imagename)
+```
+Se puede evidenciar a continuación una figura de un hombre sin gafas de una de las imágenes del modelo.
+
+```{r  message=FALSE, warning=FALSE , echo=T,fig.width= 2,fig.height= 2,fig.align='center'}
+#Podemos mostrarla con el siguiente código
+display(img,method='raster',all=TRUE)
+```
+
+Igualmente, se muestra una figura de un hombre con gafas en una de las imágenes del modelo.
+
+```{r  message=FALSE, warning=FALSE , echo=T,fig.width= 2,fig.height= 2,fig.align='center' }
+display(img2,method='raster',all=TRUE)
+```
+
+Para facilitar la visualización y vectorización, se procede a convertir las imágenes en una escala de grises para no trabajar con el modelo de color CMYK* (modelo de color sustractivo que se utiliza en la impresión en colores, es la versión moderna y más precisa del antiguo modelo tradicional de coloración).
+
+Por ende, las imágenes presentadas ahora se van a visualizar en espectro de grises.
+
+```{r  message=FALSE, warning=FALSE , echo=T,fig.width= 2,fig.height= 2,fig.align='center' }
+#Escala de grises.
+
+img_g<-channel(img,"gray")
+img_g2<-channel(img2,"gray")
+
+display(img_g,method='raster',all=TRUE)
+display(img_g2,method='raster',all=TRUE)
+```
+
+Ya que todas las figuras fueron creadas por computadora, los lentes se ubicarán casi en la misma posición, por esa razón se delimitaron las imágenes.
+
+```{r  message=FALSE, warning=FALSE , echo=T, fig.width= 3,fig.height= 3,fig.align='center' }
+img_crop = img_g[150:900,360:650]
+display(img_crop,method='raster',all=TRUE)
+
+img_crop2 = img_g2[150:900,360:650]
+display(img_crop2,method='raster',all=TRUE)
+```
+
+Inclusive, se podría cortar solamente el septo nasal que es donde se marcan más los lentes para diferenciar las personas que usan o no gafas. Como se muestra a continuación:
+
+```{r  message=FALSE, warning=FALSE , echo=T, fig.width= 3,fig.height= 3,fig.align='center' }
+img_crop = img_g[440:590,440:580]
+display(img_crop,method='raster',all=TRUE)
+
+img_crop2 = img_g2[440:590,440:580]
+display(img_crop2,method='raster',all=TRUE)
+```
+
+Vamos a presentar unos histogramas con el fin de ver por medio de sus frecuencias si hay diferencias entre imágenes con y sin gafas. En los siguientes histogramas se busca observar la cantidad de píxeles (21.291 píxeles) versus la intensidad (0 a 1).
+
+```{r  message=FALSE, warning=FALSE , echo=T }
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Modelos")
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Modelos/")
+
+for (i in 1:6){
+imagename <-lista[i]
+
+img = readImage(imagename)
+
+img_g<-channel(img,"gray")
+
+img_crop = img_g[440:590,440:580]
+par(mfrow=c(1,2))
+display(img_crop*2,method='raster',all=TRUE)
+
+hist(img_crop,breaks=100)
+}
+
+```
+
+Finalmente, se evidenció que habían diferencias entre los histogramas de personas con o sin gafas, ya que se aprecia que hay un perfil diferente entre la personas que tienen gafas y las que no. Para ello, se utilizó la intensidad de luz que está en una escala de 0 a 1, donde el 0 representa la tonalidad más oscura de la imagen y el 1 la más clara. Es decir, si en la fotografía existen más píxeles en la parte oscura, entonces la frecuencia allí representada en el histograma será mayor.
+
+Para las imágenes que no tienen lentes, la frecuencia está hacia el lado derecho, es decir, que la imagen tiene más intensidad de luz. Para las imágenes que tienen lentes oscuros, la frecuencia está hacia el lado izquierdo, es decir, que la imagen tiene más píxeles oscuros. Y finalmente, para las imágenes que tienen lentes transparentes, la frecuencia tiene más variabilidad pero aún así se puede notar que son diferentes a las demás.
+
+## 3. Modelo
+
+Con la intención de buscar una forma para poder comparar los vectores se crea una matriz con datos de intensidad, en donde, se establecen los cuartiles del histograma para obtener un perfil de comparación. Y además, con apoyo de una función cíclica, la cual comienza en 1 hasta el tamaño de la lista, se crea una matriz(representa las fotos con gafas) que finalmente se almacena en un archivo csv.
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
+#Entrar al directorio base
+
+# setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Con_gafas_training")
+# 
+# #Abrir las imágenes del modelo
+# list.files()->lista
+
+#Vamos a crear una columna con los cuartiles necesarios (basado en el concepto de histograma)
+
+# paste0(seq(0,0.995,0.005),"-",seq(0.005,1,0.005))->cuartiles
+# 
+# data.frame(values=cuartiles)->gafas
+# 
+# for (i in 1:length(lista)){
+# imagename <-lista[i]
+# 
+# img = readImage(imagename)
+# 
+# img_g<-channel(img,"gray")
+# 
+# img_crop = img_g[440:590,440:580]
+# hist(img_crop,breaks=seq(0,1,0.005))->dados
+# data.frame(gafas,dados$counts)->gafas
+# 
+# }
+# colnames(gafas)<-c("values",lista)
+
+#guardando este resultado
+
+#write.csv(gafas,"D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/FotosConGafas.csv")
+```
+
+Se realiza el mismo proceso anterior para el caso de fotos sin gafas, que igualmente dicha matriz generada se almacena en otro archivo csv.
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
+
+#Entrar al directorio base
+
+#setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Sin_gafas_training")
+
+# 
+# #Abrir las imágenes del modelo
+# list.files()->lista
+# 
+# #Vamos a crear una columna con los cuartiles necesarios (basado en el concepto de histograma)
+# 
+# paste0(seq(0,0.995,0.005),"-",seq(0.005,1,0.005))->cuartiles
+# 
+# data.frame(values=cuartiles)->Sgafas
+# 
+# for (i in 1:length(lista)){
+# imagename <-lista[i]
+# 
+# img = readImage(imagename)
+# 
+# img_g<-channel(img,"gray")
+# 
+# img_crop = img_g[440:590,440:580]
+# hist(img_crop,breaks=seq(0,1,0.005))->dados
+# data.frame(Sgafas,dados$counts)->Sgafas
+# 
+# }
+# colnames(Sgafas)<-c("values",lista)
+# 
+# #guardando este resultado
+# 
+# write.csv(gafas,"D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/FotosSinGafas.csv")
+```
+
+En este modelo, generamos 200 valores numéricos para cada imagen recortada, donde dichos valores representan la cantidad de píxeles.
+
+A continuación se muestran los valores divididos en rangos con respecto a su nivel de intensidad de luz, para así tener más resolución en los resultados.
+```{r, fig.dim = c(18, 6), dpi=600, message=FALSE}
+#Entrar al directorio base
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto")
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Modelos/")
+
+#Leer los archivos
+
+read.csv("FotosConGafas.csv")->gafas
+
+#gafas <- read.csv("C:/Users/Lenovo/Downloads/FotosConGafas.csv")
+
+read.csv("FotosSinGafas.csv")->Sgafas
+
+#Sgafas <- read.csv("C:/Users/Lenovo/Downloads/FotosSinGafas.csv")
+
+#Vamos a ver rápidamente los archivos:
+
+head(gafas,5)
+
+head(Sgafas,5)
+```
+
+Luego, la información que se tiene tanto para las imágenes que tienen gafas como las que no, la adecuamos según lo requerido. Después de este proceso se agrupa la información  de ambos grupos y se crea un archivo csv con los datos de entrenamiento.
+```{r, fig.dim = c(18, 6), dpi=600, message=FALSE}
+#ordenar tablas, columnas, cambiar nombres
+
+gafas[,2]->rownames(gafas)
+gafas[,-c(1:2)]->gafas
+t(gafas)->gafas
+
+
+Sgafas[,2]->rownames(Sgafas)
+Sgafas[,-c(1:2)]->Sgafas
+t(Sgafas)->Sgafas
+
+#Juntando la información
+
+train<-data.frame(rbind(gafas,Sgafas),grupo=c(rep("Con_Gafas",nrow(gafas)),rep("Sin_Gafas",nrow(Sgafas))))
+colnames(train)<-c(colnames(gafas),"grupo")
+
+#write.csv(train,"train_1.csv")
+```
+
+Ahora, se realiza un gráfico para analizar la frecuencia con respecto a la intensidad de luz.
+```{r, fig.dim = c(18, 6), dpi=600, message=FALSE}
+#revisando los histogramas
+
+
+train %>% pivot_longer(!grupo,names_to="range",values_to="value")->datos
+
+
+ggplot(datos, aes(x=range, y=value, color=grupo)) +
+  geom_boxplot()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1,size=8))
+```
+En dicho gráfico, se ve representado por medio del boxplot rojo la información que poseen las imágenes con gafas y por medio del boxplot azul, la información que poseen las imágenes sin gafas, que se encuentran entre un rango de intensidad de luz(de 0 a 1), donde en efecto se observó, que en el boxplot que representan las imágenes con gafas(rojos) se encuentran entre rango de opacidad(lado izquierdo de la imagen), lo cual evidencia que posee un perfil diferente que el de las imágenes sin gafas(azul). Para el entrenamiento del modelo se tomarán los datos del lado izquierdo para diferenciar las imágenes con y sin gafas, dado que a la derecha la diferencia entre las imágenes es poca y tendería a contaminar el modelo.
+
+```{r, fig.dim = c(18, 6), dpi=600, message=FALSE, include=FALSE}
+png("Boxplot_general.png",width=12000, height=5000,res=600)
+ggplot(datos, aes(x=range, y=value, color=grupo)) +
+  geom_boxplot()+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1,size=8))
+dev.off()
+```
+
+Con el fin de reducir la dimensionalidad se utiliza el Análisis de Componentes Principales (ACP), para así representar la información original pero en un espacio de dimensión menor(limitando la pérdida de información).
+
+De esta forma, se elabora el modelo mediante regresión de componentes principales, donde el grupo representa la variable predictora y la data a la variable de respuesta a modelar, así mismo, se creó una variable donde el número 1 representa las imágenes con gafas y 0 las imágenes sin gafas. Igualmente todo este procedimiento se guardó en un archivo csv.
+
+```{r message=FALSE, warning=FALSE , echo=T}
+
+#Ejecutando el ACP
+
+
+mutate(train,grupo=ifelse(grupo=="Con_Gafas",1,0))->train2
+
+#creación del modelo
+pcr(grupo~.,data=train2[,c(1:60,201)],scale=TRUE,validation="CV")->model
+
+#Prueba redundante 
+predict(model,train2[,-201],ncomp=10)->prob
+
+#Si se desea, se pueden juntar los datos creados con los valores reales (columna grupo de la tabla train)
+ cbind(prob,train2[,201])->prob
+
+ #write.csv(prob,"datos_generados.csv")
+ 
+```
+
+
+Después de crear el modelo, percibimos algunos casos donde la predicción era muy baja en fotos con gafas (debido a marcos de las gafas muy finos, plateados o transparentes) o muy alta en fotos sin gafas (debido a personas con una tez más oscura), como se puede apreciar en el siguiente gráfico.
+
+
+
+```{r  message=FALSE, warning=FALSE , echo=T,fig.width= 2,fig.height= 2,fig.align='center'}
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Sin_gafas_training")
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Sin gafas_training")
+
+
+
+#Abrir las imágenes del modelo
+list.files()->lista
+
+i<-127
+imagename <-lista[i]
+
+img = readImage(imagename)
+
+img_g<-channel(img,"gray")
+
+img_crop = img_g[440:590,440:580]
+display(img_g,method='raster')
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Con_gafas_training")
+
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Con gafas_training")
+
+#Abrir las imágenes del modelo
+list.files()->lista
+
+i<-219
+imagename <-lista[i]
+
+img = readImage(imagename)
+
+img_g<-channel(img,"gray")
+
+img_crop = img_g[440:590,440:580]
+display(img_g,method='raster')
+
+
+
+```
+
+A continuación, se presenta un diagrama de violín, en donde se representa la densidad de muestras que clasifica el modelo de entrenamiento para los grupos 0 (con gafas) y 1 (sin gafas). Es fácil destacar que la gran mayoría de las observaciones sin gafas se encuentran por debajo de 0.5, proporcionándole la forma "ancha" característica y el grupo con gafas tiene una forma más alargada y alta, ocupando un rango de valores mayor.
+
+
+```{r message=FALSE, warning=FALSE , echo=T,fig.width= 3,fig.height= 3,fig.align='center'}
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto")
+read.csv("datos_generados.csv")->datos
+
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Sin gafas_training")
+
+#datos <- read.csv("C:/Users/Lenovo/Downloads/datos_generados.csv")
+
+#En el siguiente gráfico, se muestra como 0, aquellas imágenes que no deberían tener gafas y como 1, aquellas que deberían mostrar gafas. 
+ggplot(datos,aes(x=as.factor(X.1),y=prob))+geom_violin()
+```
+
+Una manera de comprobar las diferencias entre los grupos, es realizar una prueba t para la diferencia de medias.
+
+Prueba de hipótesis:
+
+$H_0$=$\mu_1-\mu_2=0$  vs $H_1$=$\mu_1 - \mu_2 \neq 0$
+
+```{r, message=FALSE, warning=FALSE , echo=T}
+#Para comprobar los datos y las diferencias significativas, podemos ejecutar un análisis de comparación de promedios (prueba t)
+t.test(datos[which(datos$X.1==1),2],datos[which(datos$X.1==0),2])
+
+```
+
+De acuerdo al resultado, nuestra sospecha es cierta de que las medias de los valores para ambos grupos son diferentes y esto se contrasta con el p-value de $2.2e^{-16}$ arrojado por la prueba, lo cual nos permite rechazar la hipótesis nula.
+
+
+## 4. Validación
+
+Del modelo predictivo trabajado hasta ahora, si bien es cierto que se caracteriza por tener una lógica avanzada, requiere de términos específicos. En este caso, el entrenamiento se realizó con imágenes frontales (straight), entonces la validación debe hacerse con el mismo tipo de imágenes. Es decir, el modelo puede predecir con un cierto grado de error, si se le evalúa con imágenes similares a las que se usaron en entrenamiento.
+
+Del conjunto de validación obtenido de [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/CMU+Face+Images) tenemos 424 fotos que cumplen con esta característica, se analizarán usando la librería [pixmap](https://www.rdocumentation.org/packages/pixmap/versions/0.4-12/topics/pnm)
+
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
+
+
+# setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/TestValido")
+# 
+# list.files()->lista
+# 
+# #Convertir todo para png
+# for (i in 1:length(lista)){
+# read.pnm(lista[i])->a
+# png(paste0(lista[i],".png"))
+# plot(a)
+# dev.off()
+# }
+
+```
+
+
+Las imágenes seleccionadas se convirtieron todas de formato pgm a png. Una imagen de este conjunto es:
+
+
+```{r message=FALSE, warning=FALSE , echo=T,fig.width= 2,fig.height= 2,fig.align='center'}
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Test_PNG")
+
+#setwd("D:/UNIVERSIDAD/TAE/TRABAJO_3/Test_PNG")
+
+#Abrir las imágenes del modelo
+list.files()->lista
+
+i<-4
+imagename <-lista[i]
+
+img = readImage(imagename)
+
+img_g<-channel(img,"gray")
+
+
+display(img_g,method='raster')
+
+```
+
+
+
+Una vez que se tienen todas las imágenes en formato png, repetiremos los pasos iniciales para calcular los histogramas del grupo de validación.
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F}
+# setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/Test_PNG")
+# 
+# 
+# #Abrir las imágenes del modelo
+# list.files()->lista
+# 
+# #Vamos a crear una columna con los cuartiles necesarios 
+# 
+# paste0(seq(0,0.995,0.005),"-",seq(0.005,1,0.005))->cuartiles
+# 
+# data.frame(values=cuartiles)->test
+# 
+# for (i in 1:length(lista)){
+# imagename <-lista[i]
+# 
+# img = readImage(imagename)
+# 
+# img_g<-channel(img,"gray")
+# 
+# img_crop = img_g[245:265,200:250]
+# hist(img_crop,breaks=seq(0,1,0.005))->dados
+# data.frame(test,dados$counts)->test
+# 
+# }
+# colnames(test)<-c("values",lista)
+
+#Guardando este resultado
+
+#write.csv(test,"D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/test.csv")
+
+
+```
+
+Finalmente se prueba y se revisan los resultados del modelo elaborado.
+
+
+```{r message=FALSE, warning=FALSE, results = 'hide', echo=F }
+
+
+# setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/")
+# 
+# read.csv("train_1.csv")->train
+# 
+# 
+# 
+# train[,1]->rownames(train)
+# train[,-1]->train
+# 
+# mutate(train,grupo=ifelse(grupo=="Con_Gafas",1,0))->train2
+# 
+# 
+# 
+# #creación del modelo
+# pcr(grupo~.,data=train2[,c(1:60,201)],scale=TRUE,validation="CV")->model
+# 
+# #Prueba con grupo test
+# read.csv("test.csv")->test
+# test[,2]->rownames(test) 
+# test[,-c(1:2)]->test
+# t(test)->test
+# 
+# predict(model,newdata=test[,1:60],ncomp=10)->prob
+
+#Si se desea, se pueden juntar los datos creados con los valores reales (columna grupo de la tabla train)
+ # write.csv(prob,"resultados.csv")
+ 
+
+```
+Para ver el porcentaje de aciertos, se analizan los valores reales vs predichos por el modelo, esto se hace en el archivo resultados.csv y resultado (1).csv generados anteriomente. En el siguiente gráfico, se observan valores de estimación más altos en las fotos con gafas, como era de esperarse en concordancia por el resultado visto anteriomente en el gráfico de violín. Se observan algunos valores atípicos. 
+
+```{r message=FALSE, warning=FALSE , echo=T,fig.width= 3,fig.height= 3,fig.align='center'}
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/")
+read.csv("resultados.csv")->datos
+
+#datos <- read.csv("C:/Users/Lenovo/Downloads/resultados.csv")
+
+rbind(mutate(datos[datos$X %like% "open",],grupo="Sin_gafas"),
+      mutate(datos[datos$X %like% "sungla",],grupo="Con_gafas"))->datos2
+
+
+ggplot(datos2,aes(x=grupo,y=grupo.10.comps))+geom_boxplot()+scale_y_log10()
+```
+Con la intención de visualizar el desempeño de este algoritmo(que se emplea en aprendizaje supervisado) procedemos a realizar una matriz de confusión, la cual es una herramienta muy útil para valorar qué tan bueno es un modelo de clasificación basado en aprendizaje automático. En particular, sirve para mostrar de forma explícita cuándo una clase es confundida con otra, lo cual nos permite trabajar de forma separada con distintos tipos de error.
+
+```{r  message=FALSE, warning=FALSE , echo=T,fig.width= 3,fig.height= 3,fig.align='center'}
+#datosmw <- read_excel("C:/Users/Lenovo/Downloads/resultados (1).xlsx")
+
+
+setwd("D:/Users/Usuario/Desktop/UN/11.SEMESTREXI/TAE/Trabajo3/proyecto/")
+datosmw <- readxl::read_excel("resultados(1).xlsx")   
+
+datosmw$Teórico <- as.factor(datosmw$Teórico)
+datosmw$Estimado <- as.factor(datosmw$Estimado)
+
+cm <- conf_mat(datosmw, Estimado, Teórico)
+
+autoplot(cm, type = "heatmap") +
+  scale_fill_gradient(low = "pink", high = "cyan")
+
+
+```
+Los valores de la diagonal principal a=209(98.58%) y d=173(81.6%) corresponden tanto a los valores estimados de forma correcta por el modelo, como a los verdaderos positivos d = 173(imágenes con lentes), y a los verdaderos negativos a= 209(imágenes sin lentes).
+
+La otra diagonal, por tanto, representa los casos en los que el modelo se ha equivocado (c=39(18,4%) falsos negativos, b=3(1.42%) falsos positivos).
+
+Luego de haber analizado la matrix de confusión, se procede a calcular la exactitud, la precisión, la sensibilidad y la especificidad.
+
+- Exactitud
+La exactitud (o «accuracy«) representa el porcentaje de predicciones correctas frente al total. Por tanto, es el cociente entre los casos bien clasificados por el modelo (verdaderos positivos y verdaderos negativos, es decir, los valores en la diagonal de la matriz de confusión), y la suma de todos los casos.
+
+(209+173)/(209+173+39+3)=382/424= 0.9009434*100% = 90%
+
+El valor obtenido para la exactitud en este modelo es del 90%.
+
+- Precisión
+La precisión, (o“precision”) se refiere a lo cerca que está el resultado de una predicción del valor verdadero. Por tanto, es el cociente entre los casos positivos bien clasificados por el modelo y el total de predicciones positivas.
+
+(173)/(173+3)= 0.9829545*100% = 98.3%
+
+El valor obtenido para este modelo es de un 98.3%. Por tanto, nuestro modelo es más preciso que exacto.
+
+- Sensibilidad
+La sensibilidad (o recall) representa la tasa de verdaderos positivos (True Positive Rate) ó TP. Es la proporción entre los casos positivos bien clasificados por el modelo, respecto al total de positivos, el cual es, la habilidad del modelo de dectetar los casos relevantes.
+
+173/(39+173) = 0.8160377*100% = 81.6%
+
+Un 81.6% es claramente un valor muy bueno para una métrica. Podemos decir que nuestro algoritmo de clasificación es sensible, es decir, no se le escapan muchos positivos.
+
+- Especificidad
+La especificidad, por su parte, es la tasa de verdaderos negativos, (“true negative rate”)o TN. Es la proporción entre los casos negativos bien clasificados por el modelo, respecto al total de negativos.
+
+209/(209+3) = 0.9858491*100% = 98.6%
+
+En este caso, la especificidad tiene un valor muy bueno. Esto significa que su capacidad de discriminar los casos negativos es muy buena. Es decir, es difícil obtener falsos positivos.
+
+- Conclusión
+Como se pudo observar, para cada métrica se obtuvieron valores altos, lo cual indica que el modelo tiene alta precisión y exactitud, y además de ello tiene una alta sensibilidad(tiene alto porcentaje en detectar casos positivos) y una alta especificidad(tiene alto porcentaje en detectar casos negativos).
+
+Nuevamente, como se hizo para el conjunto de entrenamiento, se realiza una prueba t para la diferencia de medias entre los grupos.
+
+Prueba de hipótesis:
+
+$H_0$=$\mu_1-\mu_2=0$  vs $H_1$=$\mu_1 - \mu_2 \neq 0$
+
+```{r message=FALSE, warning=FALSE , echo=T}
+#Para comprobar los datos y las diferencias significativas, podemos ejecutar un análisis de comparación de medias (prueba t)
+t.test(datos2[which(datos2$grupo=="Con_gafas"),2],datos[which(datos2$grupo=="Sin_gafas"),2])
+
+
+```
+De acuerdo al resultado, nuestra sospecha es cierta de que las medias de los valores para ambos grupos son diferentes y esto se contrasta con el p-value de 0.0001655 arrojado por la prueba, lo cual nos permite rechazar la hipótesis nula.
+
+
+
+
+
+## 5. Interrogantes 
+
+
+### 5.1. ¿Qué afecta la capacidad del modelo en el conjunto de validación?
+
+- La ubicación de los rostros. Preferiblemente se desea que todas las imágenes sean centradas en donde se denote el septo nasal. Imágenes de perfil o con el mentón levantado no son aptas para este modelo.
+
+- La estadarización de las imágenes. Existen fotos extrañas en el conjunto de validación, imágenes dobles ó con rostros a medias, esto genera ruido y entorpece la capacidad de clasificar correctamente.
+
+- La tez de las personas de las fotografías. Puede llegar a alterar el modelo debido a  la cantidad de píxeles (Ya sean mas oscuros o más claros) debido a que no podría distinguir si la persona lleva gafas o no.
+
+- Errores humanos. El mal procedimiento a la hora de escoger una imagen y agregarla en la clasificación incorrecta.
+
+- Formato de imágenes. La transformación de imágenes de pgm a png para el desarrollo del modelo.
+
+
+
+### 5.2. ¿Hay alguna característica de las imágenes que mejore la capacidad de respuesta?
+
+
+- Como se dijo anteriormente, que todas las imágenes sean frontales.
+
+- La nitidez de las imágenes.
+
+- Para este modelo, las personas con tez clara deberían usar lentes oscuros para que éste pueda identificar que sí poseen lentes.
+
+
+## 6. Enlace de interés
+
+Usted puede revisar el código y los datos usados en este proyecto en nuestro repositorio en [Github]()
+
+## 7. Referencias
+
+[1] https://www.um.es/geograf/sigmur/temariohtml/node74.html  
+[2] https://empresas.blogthinkbig.com/como-interpretar-la-matriz-de-confusion-ejemplo-practico/
+
+
+
+
+
+
+
+
+
+
+
+
