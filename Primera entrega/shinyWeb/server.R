@@ -1,3 +1,4 @@
+library(readxl)
 library(shiny)
 library(leaflet)
 library(sf)
@@ -5,23 +6,6 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 library(raster)
-library(rgdal)
-require(factoextra)
-library(stringr)
-library(readxl)
-library(GGally)
-library(car)
-library(MLmetrics)
-library(wordcloud)
-library(gplots)
-library(R.utils)
-library(tm)
-library(DescTools)
-library(mclust)
-library(geosphere)
-library(NbClust)
-library(vegan)
-library(qpcR)
 library(plotly)
 
 # Define server logic required to draw a histogram
@@ -38,39 +22,6 @@ server <- function(input, output){
   catastro <- read_sf("Limite_Barrio_Vereda_Catastral.shp")
   
   barrio_vereda <- read.csv("Barrio_Vereda_2014.csv", encoding="UTF-8")
-  
-  output$Historico <- renderLeaflet({
-  
-    Unido <- inner_join(catastral, base_final, by = c("COMUNA" = "NUMCOMUNA"))
-    
-    if(input$select_tipo_accidente == "Todos"){
-      nueva_base <- Unido %>% filter(AÑO >= input$slider_año[1] & AÑO <= input$slider_año[2]) %>% 
-        group_by(CODIGO) %>%
-        summarise(accidentes = n()) %>%
-        ungroup()
-    }
-    else{
-      nueva_base <- Unido %>% filter(AÑO >= input$slider_año[1] & AÑO <= input$slider_año[2], CLASE == input$select_tipo_accidente ) %>% 
-        group_by(CODIGO) %>%
-        summarise(accidentes = n()) %>%
-        ungroup()
-      
-    }
-    
-    catastro$CODIGO <- as.numeric(as.character(catastro$CODIGO))
-    
-    mapa <- inner_join(catastro, nueva_base, by = c("CODIGO" = "CODIGO"))
-    
-    mypal <- colorNumeric(palette = c("#000000","#280100","#3D0201","#630201","#890100","#B00100","#DD0100","#F50201",
-                                      "#FF5F5E","#FF7A79","#FF9796","#FEB1B0","#FDC9C8", "#FFE5E4"), domain = mapa$accidentes, reverse = T)
-    
-    leaflet() %>% addPolygons(data = mapa, color = "#0A0A0A", opacity = 0.6, weight = 1, fillColor = ~mypal(mapa$accidentes),
-                              fillOpacity = 0.6, label = ~NOMBRE_BAR,
-                              highlightOptions = highlightOptions(color = "black", weight = 3, bringToFront = T, opacity = 1),
-                              popup = paste("Barrio: ", mapa$NOMBRE_BAR, "<br>", "Accidentes: ", mapa$accidentes, "<br>")) %>%
-      addProviderTiles(providers$OpenStreetMap) %>%
-      addLegend(position = "bottomright", pal = mypal, values = mapa$accidentes, title = "Accidentes", opacity = 0.6)
-    })
   
   output$Prediccion2020 <- renderPlotly({
     
@@ -192,13 +143,13 @@ server <- function(input, output){
     
     Base_prediccion <- read.csv("prediccion.csv", sep = ",", encoding = "UTF-8")
     
+    datos_lm4 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
+                                           CLASE) %>% count(name = "NRO_ACCID")
+    
+    lm4 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE, family = "poisson", 
+               data = datos_lm4)
+    
     if(input$select_ventana_tiempo == "Diario"){
-      
-      datos_lm4 <- base_final03 %>% group_by(FECHA, FESTIVIDAD, DIA_SEMANA, 
-                                             CLASE) %>% count(name = "NRO_ACCID")
-      
-      lm4 <- glm(NRO_ACCID ~ FESTIVIDAD+DIA_SEMANA+CLASE, family = "poisson", 
-                 data = datos_lm4)
       
       Base_prediccion_2021 <- subset(Base_prediccion, (AÑO != '2020'))
       
