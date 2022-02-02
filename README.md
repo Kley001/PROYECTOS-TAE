@@ -1,4 +1,4 @@
-## Desarrollo de proyectos de tecnicas de aprendizaje estadistico
+## Desarrollo de proyectos de técnicas de aprendizaje estadístico
 
 ### Integrantes 
 
